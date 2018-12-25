@@ -3,16 +3,33 @@ A program to compare the acurracy of Keras models with and without
 compression.
 """
 
+# TODO: move EvalGenerator to separate module
+# TODO: improve evaluation, bounding boxes?
+# TODO: apply for all models
+# TODO: cleanup observer code
+
 import math
 import os
 import keras.utils
+import datetime
 import numpy as np
 from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
 from keras.layers.core import Dense
 from keras.preprocessing import image
 from keras.applications.resnet50 import preprocess_input
 from sacred import Experiment
+from sacred.utils import apply_backspaces_and_linefeeds
+from sacred.observers import FileStorageObserver
 
+name = os.path.basename(__file__).split('.')[0]
+now = datetime.datetime.now()
+ex = Experiment(name)
+ex.captured_out_filter = apply_backspaces_and_linefeeds
+results_dir = 'results/' + name + '/' + now.strftime('%Y%m%d/%H%M%S')
+results_dir += '-' + str(os.getpid()) + '_' + os.uname()[1]
+EX = Experiment(results_dir)
+
+EX.observers.append(FileStorageObserver.create('results'))
 
 class EvalGenerator(keras.utils.Sequence):
     """
@@ -49,7 +66,6 @@ class EvalGenerator(keras.utils.Sequence):
             cat = self.category_list[j]
             outputs_batch[i] = keras.utils.to_categorical(cat, 1000)
         return inputs_batch, outputs_batch
-EX = Experiment()
 
 
 @EX.config
