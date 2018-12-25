@@ -3,6 +3,7 @@ A program to investigate existing DNNs (e.g. VGG16), about the
 distribution of weights."""
 
 import numpy as np
+import os.path
 import matplotlib.pyplot as plt
 import keras.applications
 from keras.layers.core import Dense
@@ -71,6 +72,8 @@ def proc_all_models():
 
 
 def main():
+    if not os.path.isdir("imgs"):
+        os.makedirs("imgs")
     proc_all_models()
 
 
