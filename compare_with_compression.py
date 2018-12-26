@@ -162,6 +162,6 @@ def proc_all_models():
     for index, name in enumerate(model_names):
         print("{} - {}/{}".format(name, index, len(model_names)))
         result = proc_model(name)
-        print("Original = {}".format(result[0]))
-        print("With normalisation = {}".format(result[1]))
-        print("Without normalisation = {}".format(result[2]))
+        print("{} original = {}".format(name, result[0]))
+        print("{} with normalisation = {}".format(name, result[1]))
+        print("{} without normalisation = {}".format(name, result[2]))
