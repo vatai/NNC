@@ -1,0 +1,9 @@
+#+TITLE: NNC - neural networks compression: global work plan
+#+OPTIONS: toc:nil p:t
+* TODO bbox crop
+  SCHEDULED: <2018-12-26 水>
+* TODO compression by sparsifying
+  SCHEDULED: <2018-12-26 水>
+* TODO closest difference
+  SCHEDULED: <2018-12-26 水>
+* TODO permutation compression????
