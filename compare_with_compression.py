@@ -21,11 +21,11 @@ from sacred import Experiment
 from sacred.utils import apply_backspaces_and_linefeeds
 from sacred.observers import FileStorageObserver
 
-name = os.path.basename(__file__).split('.')[0]
+ex_name = os.path.basename(__file__).split('.')[0]
 now = datetime.datetime.now()
-ex = Experiment(name)
+ex = Experiment(ex_name)
 ex.captured_out_filter = apply_backspaces_and_linefeeds
-results_dir = 'results/' + name + '/' + now.strftime('%Y%m%d/%H%M%S')
+results_dir = 'results/' + ex_name + '/' + now.strftime('%Y%m%d/%H%M%S')
 results_dir += '-' + str(os.getpid()) + '_' + os.uname()[1]
 EX = Experiment()
 
@@ -159,11 +159,9 @@ def proc_all_models():
                    "inceptionresnetv2", "mobilenet", "mobilenetv2",
                    "densenet121", "densenet169", "densenet201", "nasnetmobile",
                    "nasnetlarge"]
-    model_names = ["resnet50"]
     for index, name in enumerate(model_names):
         print("{} - {}/{}".format(name, index, len(model_names)))
         result = proc_model(name)
         print("Original = {}".format(result[0]))
         print("With normalisation = {}".format(result[1]))
         print("Without normalisation = {}".format(result[2]))
-
