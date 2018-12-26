@@ -27,9 +27,10 @@ ex = Experiment(name)
 ex.captured_out_filter = apply_backspaces_and_linefeeds
 results_dir = 'results/' + name + '/' + now.strftime('%Y%m%d/%H%M%S')
 results_dir += '-' + str(os.getpid()) + '_' + os.uname()[1]
-EX = Experiment(results_dir)
+EX = Experiment()
 
-EX.observers.append(FileStorageObserver.create('results'))
+EX.observers.append(FileStorageObserver.create(results_dir))
+
 
 class EvalGenerator(keras.utils.Sequence):
     """
@@ -113,16 +114,16 @@ def proc_dense_layer(layer, norm=True):
     assert type(layer) == Dense
     dense, bias = layer.get_weights()
     args = np.argsort(dense, axis=1)
-    sorted_dense = np.take_along_axis(dense, args, axis=1)
+    out = np.take_along_axis(dense, args, axis=1)
     norms_dense = np.linalg.norm(dense, axis=1)
     if norm:
-        out = sorted_dense / norms_dense[:, np.newaxis]
-    else:
-        out = sorted_dense
+        out /= norms_dense[:, np.newaxis]
     mean = out.mean(axis=0)
     compressed_dense = np.take_along_axis(mean[np.newaxis, :],
                                           np.argsort(args, axis=1),
                                           axis=1)
+    if norm:
+        compressed_dense *= norms_dense[:, np.newaxis]
     return compressed_dense, bias
 
 
