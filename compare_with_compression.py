@@ -160,7 +160,7 @@ def proc_all_models():
                    "densenet121", "densenet169", "densenet201", "nasnetmobile",
                    "nasnetlarge"]
     for index, name in enumerate(model_names):
-        print("{} - {}/{}".format(name, index, len(model_names)))
+        print(">>>>>> {} - {}/{}".format(name, index, len(model_names)))
         result = proc_model(name)
         print("{} original = {}".format(name, result[0]))
         print("{} with normalisation = {}".format(name, result[1]))
