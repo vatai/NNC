@@ -55,7 +55,7 @@ class EvalGenerator(keras.utils.Sequence):
         return math.ceil(len(self.file_list) / self.batch_size)
 
     def __getitem__(self, idx):
-        print('Evaluating idx: {}/{}'.format(idx, self.__len__()))
+        # print('Evaluating idx: {}/{}'.format(idx, self.__len__()))
         inds = self.indices[idx * self.batch_size: (idx + 1) * self.batch_size]
         inputs_batch = np.zeros([self.batch_size, 224, 224, 3], np.float32)
         outputs_batch = np.zeros([self.batch_size, 1000], np.float32)
@@ -163,4 +163,7 @@ def proc_all_models():
     for index, name in enumerate(model_names):
         print("{} - {}/{}".format(name, index, len(model_names)))
         result = proc_model(name)
-        print(result)
+        print("Original = {}".format(result[0]))
+        print("With normalisation = {}".format(result[1]))
+        print("Without normalisation = {}".format(result[2]))
+
