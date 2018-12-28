@@ -16,7 +16,7 @@ from keras.layers.core import Dense
 from sacred import Experiment
 from sacred.utils import apply_backspaces_and_linefeeds
 from sacred.observers import FileStorageObserver
-from datasets.generators import EvalGenerator
+from generators import EvalGenerator
 
 ex_name = os.path.basename(__file__).split('.')[0]
 now = datetime.datetime.now()
