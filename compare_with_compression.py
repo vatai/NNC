@@ -3,12 +3,10 @@ A program to compare the acurracy of Keras models with and without
 compression.
 """
 
-# TODO: cleanup observer code
+# TODO: cleanup observer code (half way done)
 # TODO: improve evaluation, bounding boxes?
 # TODO: apply for all models
 
-import os
-import datetime
 import numpy as np
 import keras.utils
 from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
@@ -17,16 +15,12 @@ from sacred import Experiment
 from sacred.utils import apply_backspaces_and_linefeeds
 from sacred.observers import FileStorageObserver
 from generators import EvalGenerator
+from utils import get_results_dir
 
-ex_name = os.path.basename(__file__).split('.')[0]
-now = datetime.datetime.now()
-ex = Experiment(ex_name)
-ex.captured_out_filter = apply_backspaces_and_linefeeds
-results_dir = 'results/' + ex_name + '/' + now.strftime('%Y%m%d/%H%M%S')
-results_dir += '-' + str(os.getpid()) + '_' + os.uname()[1]
+
 EX = Experiment()
-
-EX.observers.append(FileStorageObserver.create(results_dir))
+EX.captured_out_filter = apply_backspaces_and_linefeeds
+EX.observers.append(FileStorageObserver.create(get_results_dir()))
 
 
 @EX.config
