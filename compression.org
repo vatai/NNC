@@ -1,6 +1,6 @@
 #+TITLE: NNC - neural networks compression: global work plan
 #+OPTIONS: toc:nil p:t
-* TODO [#A] look at the top of ./compare_with_compression.py
+* TODO [#A] look at the top of ~/code/NNC/compare_with_compression.py
   SCHEDULED: <2018-12-26 水>
 * TODO [#B] bbox crop
   SCHEDULED: <2018-12-26 水>
