@@ -23,23 +23,27 @@ def get_sysnet(obj):
     return name.text
 
 
-def get_objs(file_path):
+def get_fname_objs(file_path):
     """
-    Return all the object in the file so it can be processed by
-    get_bbox().
+    Return the filename and all the object in the file so it can be
+    processed by get_bbox().
     """
     root = ET.parse(file_path)
-    return root.findall('object')
+    filename = root.find('filename').text
+    objs = root.findall('object')
+    return filename, objs
 
 
-def proc_file(file_path):
+def proc_xml_file(file_path):
     """
     Process a file: return a list of 4 element tuples (see get_bbox),
     one for each object in the file.
     """
-    objs = get_objs(file_path)
-    result = map(get_bbox, objs)
-    return list(result)
+    filename, objs = get_fname_objs(file_path)
+    bboxes = map(get_bbox, objs)
+    sysnets = map(get_sysnet, objs)
+    filenames = len(objs) * [filename]
+    return zip(filenames, bboxes, sysnets)
 
 
 FILE = "/home/vatai/tmp/ilsvrc/val/ILSVRC2012_val_00000002.xml"
