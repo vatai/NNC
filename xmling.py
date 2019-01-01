@@ -49,5 +49,5 @@ def proc_xml_file(file_path):
 FILE = "/home/vatai/tmp/ilsvrc/val/ILSVRC2012_val_00000002.xml"
 
 
-print(proc_file(FILE))
+print(proc_xml_file(FILE))
 print("DONE")
