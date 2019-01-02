@@ -13,15 +13,15 @@ class EvalGenerator(keras.utils.Sequence):
     ResNet50 evaluation Sequence, might be ok for other models as
     well.
     """
-    def __init__(self, val_file, db_path, batch_size):
-        self.db_path = db_path
+    def __init__(self, val_file, img_dir, batch_size):
+        self.img_dir = img_dir
         self.file_list = []
         self.category_list = []
         with open(val_file) as file:
             for line in file:
                 img_path, cat_str = line.split(" ")
                 cat = int(cat_str)
-                img_path = os.path.join(db_path, img_path)
+                img_path = os.path.join(img_dir, img_path)
                 self.file_list.append(img_path)
                 self.category_list.append(cat)
         self.batch_size = batch_size

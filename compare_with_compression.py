@@ -30,7 +30,7 @@ def config():
                     'loss': 'categorical_crossentropy',
                     'metrics': [categorical_accuracy,
                                 top_k_categorical_accuracy]}
-    gen_args = {'db_path': "/home/vatai/tmp/ilsvrc/db",  # noqa: F841
+    gen_args = {'img_dir': "/home/vatai/tmp/ilsvrc/db",  # noqa: F841
                 'val_file': "/home/vatai/tmp/ilsvrc/caffe_ilsvrc12/val.txt",
                 'batch_size': 64}
     eval_args = {'max_queue_size': 10,  # noqa: F841
