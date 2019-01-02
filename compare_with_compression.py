@@ -13,7 +13,7 @@ from keras.layers.core import Dense
 from sacred import Experiment
 # from sacred.utils import apply_backspaces_and_linefeeds # for progressbars
 from sacred.observers import FileStorageObserver
-from generators import EvalGenerator
+from generators import CropGenerator
 from utils import get_results_dir
 
 
@@ -84,7 +84,7 @@ def proc_dense_layer(layer, norm=True):
 def evaluate(model, compile_args, gen_args, eval_args):
     """Evaluate model."""
     model.compile(**compile_args)
-    generator = EvalGenerator(**gen_args)
+    generator = CropGenerator(**gen_args)
     result = model.evaluate_generator(generator, **eval_args)
     return result
 
@@ -112,6 +112,7 @@ def proc_all_models():
                    "inceptionresnetv2", "mobilenet", "mobilenetv2",
                    "densenet121", "densenet169", "densenet201", "nasnetmobile",
                    "nasnetlarge"]
+    model_names = ["resnet50"]
     for index, name in enumerate(model_names):
         print(">>>>>> {} - {}/{}".format(name, index, len(model_names)))
         result = proc_model(name)
