@@ -113,7 +113,9 @@ class CropGenerator(keras.utils.Sequence):
     Evaluation generator class (Sequence) for ImageNet 2012 with
     croping.  For now it is ResNet50 specific.
     """
-    def __init__(self, val_file, img_dir, batch_size):
+    def __init__(self, val_file, img_dir, batch_size,
+                 preproc=preprocess_input,
+                 load_size=256, target_size=224):
         self.img_dir = img_dir
         self.file_list = []
         self.category_list = []
@@ -125,6 +127,9 @@ class CropGenerator(keras.utils.Sequence):
                 self.file_list.append(img_path)
                 self.category_list.append(cat)
         self.batch_size = batch_size
+        self.preproc = preproc
+        self.load_size = max(load_size, target_size)
+        self.target_size = target_size
         self.indices = np.arange(len(self.file_list))
 
     def __len__(self):
@@ -133,14 +138,20 @@ class CropGenerator(keras.utils.Sequence):
     def __getitem__(self, idx):
         print('Evaluating idx: {}/{}'.format(idx, self.__len__()))
         inds = self.indices[idx * self.batch_size: (idx + 1) * self.batch_size]
-        inputs_batch = np.zeros([self.batch_size, 224, 224, 3], np.float32)
+        input_shape = [self.batch_size, self.target_size, self.target_size, 3]
+        inputs_batch = np.zeros(input_shape, np.float32)
         outputs_batch = np.zeros([self.batch_size, 1000], np.float32)
         for i, j in enumerate(inds):
-            img = image.load_img(self.file_list[j], target_size=(256, 256))
+            load_size = (self.load_size, self.load_size)
+            img = image.load_img(self.file_list[j], target_size=load_size)
             # 256 - 224 = 32
-            img = img.crop([16, 16, 224+16, 224+16])
+            offset = (self.load_size - self.target_size)
+            box = [offset, offset,
+                   self.target_size + offset, self.target_size + offset]
+            if self.load_size != self.target_size:
+                img = img.crop(box)
             img = image.img_to_array(img)
-            img = preprocess_input(img)
+            img = self.preproc(img)
             inputs_batch[i] = img
             cat = self.category_list[j]
             outputs_batch[i] = keras.utils.to_categorical(cat, 1000)
