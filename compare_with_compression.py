@@ -58,12 +58,12 @@ def get_model(name: str):
 
 def get_same_type_layers(layers, ltype=Dense):
     """Return only Dense layers (or any other type)."""
-    return list(filter(lambda x: type(x) == ltype, layers))
+    return list(filter(lambda x: isinstance(x, ltype), layers))
 
 
 def proc_dense_layer(layer, norm=True):
     """Process a single layer if it is Dense (or other given type)."""
-    assert type(layer) == Dense
+    assert isinstance(layer, Dense)
     dense, bias = layer.get_weights()
     args = np.argsort(dense, axis=1)
     out = np.take_along_axis(dense, args, axis=1)
