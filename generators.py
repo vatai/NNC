@@ -148,18 +148,25 @@ class CropGenerator(keras.utils.Sequence):
 
 
 if __name__ == '__main__':
-    PARAM = {
-        'wnid_path': "/home/vatai/tmp/ilsvrc/caffe_ilsvrc12/synsets.txt",
-        'img_dir': "/home/vatai/tmp/ilsvrc/db",
-        'xml_dir': "/home/vatai/tmp/ilsvrc/val",
-        'batch_size': 2
-    }
     bbox_test = False
     if bbox_test:
+        PARAM = {
+            'wnid_path': "/home/vatai/tmp/ilsvrc/caffe_ilsvrc12/synsets.txt",
+            'img_dir': "/home/vatai/tmp/ilsvrc/db",
+            'xml_dir': "/home/vatai/tmp/ilsvrc/val",
+            'batch_size': 2
+        }
         gen = BboxEvalGenerator(**PARAM)
         import matplotlib.pyplot as plt
         x, y = gen[0]
         plt.imshow(x[0])
         plt.show()
         print(np.argmax(y))
-    alt_test = True
+    crop_test = True
+    if crop_test:
+        PARAM = {
+            'val_file': "/home/vatai/tmp/ilsvrc/caffe_ilsvrc12/val.txt",
+            'img_dir': "/home/vatai/tmp/ilsvrc/db",
+            'batch_size': 32
+        }
+        gen = CropGenerator()
