@@ -47,26 +47,29 @@ class EvalGenerator(keras.utils.Sequence):
 
 class BboxEvalGenerator(keras.utils.Sequence):
     """
-    ResNet50 evaluation Sequence, might be ok for other models as
-    well.
+    NOT FINISHED: not sure what to do with the bounding boxes, how to
+    cut/corp.
+
+    ResNet50 evaluation Sequence with bbox cutting for imagenet, might
+    be ok for other models as well.
     """
     def _make_bbox_list(self):
         import xml.etree.ElementTree as ET
-        bbox_template = ['xmin', 'xmax', 'ymin', 'ymax']
+        bbox_template = ['xmin', 'ymin', 'xmax', 'ymax']
         self.bbox_list = []
         xml_list = os.listdir(self.xml_dir)
         for xml_name in xml_list:
             xml_path = os.path.join(self.xml_dir, xml_name)
             root = ET.parse(xml_path)
             filename = root.find('filename').text
-            img_path = os.path.join(self.img_dir, filename)
+            img_path = os.path.join(self.img_dir, filename + ".JPEG")
             objs = root.findall('object')
             for obj in objs:
                 bbox = map(obj.find('bndbox').find, bbox_template)
                 bbox = list(map(lambda t: int(t.text), bbox))
                 wnid = obj.find('name').text
                 wnid = self.wnid_list.index(wnid)
-                self.bbox_list.append([img_path, bbox, wnid])
+                self.bbox_list.append([img_path, tuple(bbox), wnid])
 
     def __init__(self, img_dir, xml_dir, wnid_path, batch_size):
         self.wnid_list = open(wnid_path).read().splitlines()
@@ -85,9 +88,19 @@ class BboxEvalGenerator(keras.utils.Sequence):
         inputs_batch = np.zeros([self.batch_size, 224, 224, 3], np.float32)
         outputs_batch = np.zeros([self.batch_size, 1000], np.float32)
         for i, j in enumerate(inds):
-            img_path, bbox, sysnet = self.bbox_list[j]
-            # TODO: I sort of stopped here
-            img = image.load_img(img_path, target_size=(224, 224))
+            img_path, bbox, wnid_idx = self.bbox_list[j]
+            xmin, ymin, xmax, ymax = bbox
+            img = image.load_img(img_path)
+            height, width, _ = img.shape
+            crop_height, crop_width = ymax - ymin, xmax - xmin
+            crop_max_dim = max(crop_height, crop_width)
+
+            # new_height = height * 256 // min(img.shape[:2])
+            # new_width = width * 256 // min(img.shape[:2])
+            # img = img.resize(new_width, new_height)
+
+            img = img.crop(bbox)
+            img.show()
             img = image.img_to_array(img)
             img = preprocess_input(img)
             inputs_batch[i] = img
@@ -100,7 +113,14 @@ if __name__ == '__main__':
         'wnid_path': "/home/vatai/tmp/ilsvrc/caffe_ilsvrc12/synsets.txt",
         'img_dir': "/home/vatai/tmp/ilsvrc/db",
         'xml_dir': "/home/vatai/tmp/ilsvrc/val",
-        'batch_size': 32
+        'batch_size': 2
     }
-    gen = BboxEvalGenerator(**PARAM)
-    print(next(gen))
+    bbox_test = False
+    if bbox_test:
+        gen = BboxEvalGenerator(**PARAM)
+        import matplotlib.pyplot as plt
+        x, y = gen[0]
+        plt.imshow(x[0])
+        plt.show()
+        print(np.argmax(y))
+    alt_test = True
