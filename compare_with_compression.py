@@ -3,10 +3,9 @@ A program to compare the acurracy of Keras models with and without
 compression.
 """
 
-# TODO: apply for all models
 
 import numpy as np
-import keras.utils
+import keras.applications as Kapp
 from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
 from keras.layers.core import Dense
 from sacred import Experiment
@@ -37,25 +36,6 @@ def config():
                  'use_multiprocessing': False}
 
 
-def get_model(name: str):
-    """The main procedure to be called."""
-    class_dic = {"xception": keras.applications.xception.Xception,
-                 "vgg16": keras.applications.vgg16.VGG16,
-                 "vgg19": keras.applications.vgg19.VGG19,
-                 "resnet50": keras.applications.resnet50.ResNet50,
-                 "inceptionv3": keras.applications.inception_v3.InceptionV3,
-                 "inceptionresnetv2":
-                 keras.applications.inception_resnet_v2.InceptionResNetV2,
-                 "mobilenet": keras.applications.mobilenet.MobileNet,
-                 "mobilenetv2": keras.applications.mobilenet_v2.MobileNetV2,
-                 "densenet121": keras.applications.densenet.DenseNet121,
-                 "densenet169": keras.applications.densenet.DenseNet169,
-                 "densenet201": keras.applications.densenet.DenseNet201,
-                 "nasnetmobile": keras.applications.nasnet.NASNetMobile,
-                 "nasnetlarge": keras.applications.nasnet.NASNetLarge}
-    return class_dic[name]()
-
-
 def get_same_type_layers(layers, ltype=Dense):
     """Return only Dense layers (or any other type)."""
     return list(filter(lambda x: isinstance(x, ltype), layers))
@@ -80,9 +60,10 @@ def proc_dense_layer(layer, norm=True):
 
 
 @EX.capture
-def evaluate(model, compile_args, gen_args, eval_args):
+def evaluate(model, preproc_args, compile_args, gen_args, eval_args):
     """Evaluate model."""
     model.compile(**compile_args)
+    gen_args.update(preproc_args)
     generator = CropGenerator(**gen_args)
     result = model.evaluate_generator(generator, **eval_args)
     return result
@@ -90,17 +71,71 @@ def evaluate(model, compile_args, gen_args, eval_args):
 
 def proc_model(name):
     """Process one model based on the model name."""
+    # because of sacred:
     # pylint: disable=no-value-for-parameter
-    model = get_model(name)
-    gold = evaluate(model)
+    model_dic = {"xception":
+                 (Kapp.xception.Xception,
+                  {'preproc': Kapp.xception.preprocess_input,
+                   'target_size': 299}),
+                 "vgg16":
+                 (Kapp.vgg16.VGG16,
+                  {'preproc': Kapp.vgg16.preprocess_input,
+                   'target_size': 224}),
+                 "vgg19":
+                 (Kapp.vgg19.VGG19,
+                  {'preproc': Kapp.vgg19.preprocess_input,
+                   'target_size': 224}),
+                 "resnet50":
+                 (Kapp.resnet50.ResNet50,
+                  {'preproc': Kapp.resnet50.preprocess_input,
+                   'target_size': 224}),
+                 "inceptionv3":
+                 (Kapp.inception_v3.InceptionV3,
+                  {'preproc': Kapp.inception_v3.preprocess_input,
+                   'target_size': 299}),
+                 "inceptionresnetv2":
+                 (Kapp.inception_resnet_v2.InceptionResNetV2,
+                  {'preproc': Kapp.inception_resnet_v2.preprocess_input,
+                   'target_size': 299}),
+                 "mobilenet":
+                 (Kapp.mobilenet.MobileNet,
+                  {'preproc': Kapp.mobilenet.preprocess_input,
+                   'target_size': 224}),
+                 "mobilenetv2":
+                 (Kapp.mobilenet_v2.MobileNetV2,
+                  {'preproc': Kapp.mobilenet_v2.preprocess_input,
+                   'target_size': 224}),
+                 "densenet121":
+                 (Kapp.densenet.DenseNet121,
+                  {'preproc': Kapp.densenet.preprocess_input,
+                   'target_size': 224}),
+                 "densenet169":
+                 (Kapp.densenet.DenseNet169,
+                  {'preproc': Kapp.densenet.preprocess_input,
+                   'target_size': 224}),
+                 "densenet201":
+                 (Kapp.densenet.DenseNet201,
+                  {'preproc': Kapp.densenet.preprocess_input,
+                   'target_size': 224}),
+                 "nasnetmobile":
+                 (Kapp.nasnet.NASNetMobile,
+                  {'preproc': Kapp.nasnet.preprocess_input,
+                   'target_size': 224}),
+                 "nasnetlarge":
+                 (Kapp.nasnet.NASNetLarge,
+                  {'preproc': Kapp.nasnet.preprocess_input,
+                   'target_size': 331})}
+    model_cls, preproc_args = model_dic[name]
+    model = model_cls()
+    gold = evaluate(model, preproc_args)
     layers = get_same_type_layers(model.layers)
     for layer in layers:
         with_norm_layer = proc_dense_layer(layer, True)
         without_norm_layer = proc_dense_layer(layer, False)
         layer.set_weights(with_norm_layer)
-        with_norm = evaluate(model)
+        with_norm = evaluate(model, preproc_args)
         layer.set_weights(without_norm_layer)
-        without_norm = evaluate(model)
+        without_norm = evaluate(model, preproc_args)
     return gold, with_norm, without_norm
 
 
@@ -111,7 +146,6 @@ def proc_all_models():
                    "inceptionresnetv2", "mobilenet", "mobilenetv2",
                    "densenet121", "densenet169", "densenet201", "nasnetmobile",
                    "nasnetlarge"]
-    model_names = ["resnet50"]
     for index, name in enumerate(model_names):
         print(">>>>>> {} - {}/{}".format(name, index, len(model_names)))
         result = proc_model(name)
