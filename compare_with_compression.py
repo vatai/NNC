@@ -127,8 +127,10 @@ def proc_model(name):
                    'target_size': 331})}
     model_cls, preproc_args = model_dic[name]
     model = model_cls()
-    gold = evaluate(model, preproc_args)
     layers = get_same_type_layers(model.layers)
+    gold = evaluate(model, preproc_args)
+    if not layers:
+        return gold, 0, 0
     for layer in layers:
         with_norm_layer = proc_dense_layer(layer, True)
         without_norm_layer = proc_dense_layer(layer, False)
