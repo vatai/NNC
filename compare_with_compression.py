@@ -3,7 +3,6 @@ A program to compare the acurracy of Keras models with and without
 compression.
 """
 
-# TODO: improve evaluation, bounding boxes?
 # TODO: apply for all models
 
 import numpy as np
