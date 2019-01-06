@@ -2,10 +2,4 @@
 #+OPTIONS: toc:nil p:t
 * TODO [#B] look at the top of ~/code/NNC/compare_with_compression.py
   SCHEDULED: <2018-12-26 水>
-* DONE [#B] bbox crop
-  SCHEDULED: <2018-12-26 水>
-* TODO compression by sparsifying
-  SCHEDULED: <2018-12-26 水>
-* TODO closest difference
-  SCHEDULED: <2018-12-26 水>
 * TODO permutation compression????

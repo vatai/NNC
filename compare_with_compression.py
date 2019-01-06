@@ -3,6 +3,9 @@ A program to compare the acurracy of Keras models with and without
 compression.
 """
 
+# TODO: get model dense layer size
+# TODO: Compress by sparsification
+# TODO: Closses difference
 
 import numpy as np
 import keras.applications as Kapp
