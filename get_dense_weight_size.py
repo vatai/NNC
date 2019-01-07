@@ -1,10 +1,26 @@
-"""This program outputs the size of the dense layers in each keras
-pretrained model."""
+"""
+This program outputs the size of the dense layers in each keras
+pretrained model.
+"""
+
 import pickle
 import pprint
 import keras.applications as Kapp
 from keras.layers.core import Dense
+from sacred import Experiment
+from sacred.observers import FileStorageObserver
 
+from utils import get_results_dir
+
+EX = Experiment()
+EX.observers.append(FileStorageObserver.create(get_results_dir(__file__)))
+
+@EX.config
+def config():
+    model_names = ["xception", "vgg16", "vgg19", "resnet50",
+                   "inceptionv3", "inceptionresnetv2", "mobilenet",
+                   "mobilenetv2", "densenet121", "densenet169",
+                   "densenet201", "nasnetmobile", "nasnetlarge"]
 
 def get_same_type_layers(layers, ltype=Dense):
     """Return only Dense layers (or any other type)."""
@@ -52,12 +68,8 @@ def proc_model(name):
     return result
 
 
-def proc_all_models():
+def proc_all_models(model_names):
     """Process all models."""
-    model_names = ["xception", "vgg16", "vgg19", "resnet50",
-                   "inceptionv3", "inceptionresnetv2", "mobilenet",
-                   "mobilenetv2", "densenet121", "densenet169",
-                   "densenet201", "nasnetmobile", "nasnetlarge"]
     result = {}
     for index, name in enumerate(model_names):
         print(">>>>>> {} - {}/{}".format(name, index + 1, len(model_names)))
@@ -65,6 +77,8 @@ def proc_all_models():
     return result
 
 
-result = proc_all_models()
-pickle.dump(result, open("weights.pickl", 'bw'))
-pprint.pprint(result)
+@EX.automain
+def main(model_names):
+    result = proc_all_models(model_names)
+    pickle.dump(result, open("weights.pickl", 'bw'))
+    pprint.pprint(result)
