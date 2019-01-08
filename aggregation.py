@@ -22,10 +22,8 @@ def config():
 
 @EX.automain
 def main(sources):
-    # weights = pickle.load(open(sources[0]))
-    # gold = pickle.load(open(sources[1]))
-    # nonorm = pickle.load(open(sources[2]))
-    weights, gold, nonorm, norm = map(lambda t: pickle.load(open(t, 'rb')), sources)
+    weights, gold, nonorm, norm = map(lambda t: pickle.load(open(t, 'rb')),
+                                      sources)
     pprint(weights)
     pprint(gold)
     pprint(nonorm)
