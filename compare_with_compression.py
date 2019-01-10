@@ -3,8 +3,7 @@ A program to compare the acurracy of Keras models with and without
 compression.
 """
 
-# TODO: get model dense layer size
-# TODO: Compress by sparsification
+# TODO: TEST Compress by sparsification (implemented in proc_dense_layer)
 # TODO: Closses difference
 
 import numpy as np
@@ -44,7 +43,7 @@ def get_same_type_layers(layers, ltype=Dense):
     return list(filter(lambda x: isinstance(x, ltype), layers))
 
 
-def proc_dense_layer(layer, norm=True):
+def proc_dense_layer(layer, norm=False, epsilon=0):
     """Process a single layer if it is Dense (or other given type)."""
     assert isinstance(layer, Dense)
     dense, bias = layer.get_weights()
@@ -57,6 +56,9 @@ def proc_dense_layer(layer, norm=True):
     compressed_dense = np.take_along_axis(mean[np.newaxis, :],
                                           np.argsort(args, axis=1),
                                           axis=1)
+    if epsilon != 0:
+        cond = compressed_dense < epsilon
+        compressed_dense[cond] = 0
     if norm:
         compressed_dense *= norms_dense[:, np.newaxis]
     return compressed_dense, bias
@@ -131,17 +133,23 @@ def proc_model(name):
     model_cls, preproc_args = model_dic[name]
     model = model_cls()
     layers = get_same_type_layers(model.layers)
-    gold = evaluate(model, preproc_args)
+    # gold = evaluate(model, preproc_args)
     if not layers:
-        return gold, 0, 0
+        # return gold, 0, 0
+        return None, 0, 0
     for layer in layers:
-        with_norm_layer = proc_dense_layer(layer, True)
-        without_norm_layer = proc_dense_layer(layer, False)
+        epsilon = 0.1
+        with_norm_layer = proc_dense_layer(layer, norm=True)
+        without_norm_layer = proc_dense_layer(layer, norm=False)
+        thrsh_norm_layer = proc_dense_layer(layer, norm=True, epsilon=epsilon)
+        threshold_layer = proc_dense_layer(layer, norm=False, epsilon=epsilon)
         layer.set_weights(with_norm_layer)
         with_norm = evaluate(model, preproc_args)
         layer.set_weights(without_norm_layer)
         without_norm = evaluate(model, preproc_args)
-    return gold, with_norm, without_norm
+        layer.set_weights(threshold_layer)
+        threshold = evaluate(model, preproc_args)
+    return gold, with_norm, without_norm, thrsh_norm_layer, threshold
 
 
 @EX.automain
