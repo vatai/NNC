@@ -133,10 +133,10 @@ def proc_model(name):
     model_cls, preproc_args = model_dic[name]
     model = model_cls()
     layers = get_same_type_layers(model.layers)
-    # gold = evaluate(model, preproc_args)
+    gold = evaluate(model, preproc_args)
     if not layers:
-        # return gold, 0, 0
-        return None, 0, 0
+        return gold, 0, 0
+        # return None, 0, 0
     for layer in layers:
         epsilon = 0.1
         with_norm_layer = proc_dense_layer(layer, norm=True)
@@ -159,9 +159,12 @@ def proc_all_models():
                    "inceptionresnetv2", "mobilenet", "mobilenetv2",
                    "densenet121", "densenet169", "densenet201", "nasnetmobile",
                    "nasnetlarge"]
+    model_names = model_names[: 1]
     for index, name in enumerate(model_names):
         print(">>>>>> {} - {}/{}".format(name, index + 1, len(model_names)))
         result = proc_model(name)
         print(">>>>>> {} original = {}".format(name, result[0]))
         print(">>>>>> {} with normalisation = {}".format(name, result[1]))
         print(">>>>>> {} without normalisation = {}".format(name, result[2]))
+        print(">>>>>> {} without thrsh_norm_layer = {}".format(name, result[3]))
+        print(">>>>>> {} without threshold = {}".format(name, result[4]))
