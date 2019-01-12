@@ -32,7 +32,8 @@ def config():
                                 top_k_categorical_accuracy]}
     gen_args = {'img_dir': "/home/vatai/tmp/ilsvrc/db",  # noqa: F841
                 'val_file': "/home/vatai/tmp/ilsvrc/caffe_ilsvrc12/val.txt",
-                'batch_size': 64}
+                'batch_size': 64,
+                'fast_mode': False}
     eval_args = {'max_queue_size': 10,  # noqa: F841
                  'workers': 1,
                  'use_multiprocessing': False}
@@ -138,7 +139,7 @@ def proc_model(name):
         return gold, 0, 0
         # return None, 0, 0
     for layer in layers:
-        epsilon = 0.1
+        epsilon = 0.001
         with_norm_layer = proc_dense_layer(layer, norm=True)
         without_norm_layer = proc_dense_layer(layer, norm=False)
         thrsh_norm_layer = proc_dense_layer(layer, norm=True, epsilon=epsilon)
@@ -149,22 +150,26 @@ def proc_model(name):
         without_norm = evaluate(model, preproc_args)
         layer.set_weights(threshold_layer)
         threshold = evaluate(model, preproc_args)
-    return gold, with_norm, without_norm, thrsh_norm_layer, threshold
+        layer.set_weights(thrsh_norm_layer)
+        thrsh_norm = evaluate(model, preproc_args)
+    # EX.observers[0].
+    return gold, with_norm, without_norm, thrsh_norm, threshold
 
 
 @EX.automain
-def proc_all_models():
+def proc_all_models(gen_args):
     """Process all models."""
     model_names = ["xception", "vgg16", "vgg19", "resnet50", "inceptionv3",
                    "inceptionresnetv2", "mobilenet", "mobilenetv2",
                    "densenet121", "densenet169", "densenet201", "nasnetmobile",
                    "nasnetlarge"]
-    model_names = model_names[: 1]
+    if gen_args['fast_mode']:
+        model_names = [model_names[1]]
     for index, name in enumerate(model_names):
         print(">>>>>> {} - {}/{}".format(name, index + 1, len(model_names)))
         result = proc_model(name)
         print(">>>>>> {} original = {}".format(name, result[0]))
         print(">>>>>> {} with normalisation = {}".format(name, result[1]))
         print(">>>>>> {} without normalisation = {}".format(name, result[2]))
-        print(">>>>>> {} without thrsh_norm_layer = {}".format(name, result[3]))
+        print(">>>>>> {} without thrsh_norm = {}".format(name, result[3]))
         print(">>>>>> {} without threshold = {}".format(name, result[4]))

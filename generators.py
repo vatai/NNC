@@ -115,7 +115,8 @@ class CropGenerator(keras.utils.Sequence):
     """
     def __init__(self, val_file, img_dir, batch_size,
                  preproc=preprocess_input,
-                 load_size=256, target_size=224):
+                 load_size=256, target_size=224,
+                 fast_mode=0):
         self.img_dir = img_dir
         self.file_list = []
         self.category_list = []
@@ -131,12 +132,16 @@ class CropGenerator(keras.utils.Sequence):
         self.load_size = max(load_size, target_size)
         self.target_size = target_size
         self.indices = np.arange(len(self.file_list))
+        self.fast_mode = fast_mode
 
     def __len__(self):
+        if self.fast_mode:
+            return self.fast_mode if isinstance(self.fast_mode, int) else 1
         return math.ceil(len(self.file_list) / self.batch_size)
 
     def __getitem__(self, idx):
-        print('Evaluating idx: {}/{}'.format(idx, self.__len__()))
+        if self.fast_mode:
+            print('Evaluating idx: {}/{}'.format(idx+1, self.__len__()))
         inds = self.indices[idx * self.batch_size: (idx + 1) * self.batch_size]
         input_shape = [self.batch_size, self.target_size, self.target_size, 3]
         inputs_batch = np.zeros(input_shape, np.float32)
