@@ -6,6 +6,8 @@ compression.
 # TODO: TEST Compress by sparsification (implemented in proc_dense_layer)
 # TODO: Closses difference
 
+import json
+import os.path
 import numpy as np
 import keras.applications as Kapp
 from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
@@ -37,6 +39,9 @@ def config():
     eval_args = {'max_queue_size': 10,  # noqa: F841
                  'workers': 1,
                  'use_multiprocessing': False}
+    # For the no processing (original/gold results), set proc_args={}
+    proc_args = {'norm': False,
+                 'epsilon': 0}
 
 
 def get_same_type_layers(layers, ltype=Dense):
@@ -75,7 +80,8 @@ def evaluate(model, preproc_args, compile_args, gen_args, eval_args):
     return result
 
 
-def proc_model(name):
+@EX.capture
+def proc_model(model_name, proc_args):
     """Process one model based on the model name."""
     # because of sacred:
     # pylint: disable=no-value-for-parameter
@@ -131,29 +137,25 @@ def proc_model(name):
                  (Kapp.nasnet.NASNetLarge,
                   {'preproc': Kapp.nasnet.preprocess_input,
                    'target_size': 331})}
-    model_cls, preproc_args = model_dic[name]
+    model_cls, preproc_args = model_dic[model_name]
     model = model_cls()
     layers = get_same_type_layers(model.layers)
-    gold = evaluate(model, preproc_args)
     if not layers:
-        return gold, 0, 0
-        # return None, 0, 0
+        return None
+
+    # The json output should probably be moved to main()
+    basedir = EX.observers[-1].basedir
+    result_file = os.path.join(basedir, "{}.json".format(model_name))
+    if proc_args == {}:
+        gold = evaluate(model, preproc_args)
+        json.dump({"gold": gold}, open(result_file, "w"))
+        return gold
     for layer in layers:
-        epsilon = 0.001
-        with_norm_layer = proc_dense_layer(layer, norm=True)
-        without_norm_layer = proc_dense_layer(layer, norm=False)
-        thrsh_norm_layer = proc_dense_layer(layer, norm=True, epsilon=epsilon)
-        threshold_layer = proc_dense_layer(layer, norm=False, epsilon=epsilon)
-        layer.set_weights(with_norm_layer)
-        with_norm = evaluate(model, preproc_args)
-        layer.set_weights(without_norm_layer)
-        without_norm = evaluate(model, preproc_args)
-        layer.set_weights(threshold_layer)
-        threshold = evaluate(model, preproc_args)
-        layer.set_weights(thrsh_norm_layer)
-        thrsh_norm = evaluate(model, preproc_args)
-    # EX.observers[0].
-    return gold, with_norm, without_norm, thrsh_norm, threshold
+        new_layer = proc_dense_layer(layer, **proc_args)
+        layer.set_weights(new_layer) 
+    result = evaluate(model, preproc_args)
+    json.dump(result, open(result_file, "w"))
+    return result
 
 
 @EX.automain
@@ -164,12 +166,8 @@ def proc_all_models(gen_args):
                    "densenet121", "densenet169", "densenet201", "nasnetmobile",
                    "nasnetlarge"]
     if gen_args['fast_mode']:
-        model_names = [model_names[1]]
+        model_names = [model_names[3]]
     for index, name in enumerate(model_names):
         print(">>>>>> {} - {}/{}".format(name, index + 1, len(model_names)))
         result = proc_model(name)
-        print(">>>>>> {} original = {}".format(name, result[0]))
-        print(">>>>>> {} with normalisation = {}".format(name, result[1]))
-        print(">>>>>> {} without normalisation = {}".format(name, result[2]))
-        print(">>>>>> {} without thrsh_norm = {}".format(name, result[3]))
-        print(">>>>>> {} without threshold = {}".format(name, result[4]))
+        print(">>>>>> {} result = {}".format(name, result))
