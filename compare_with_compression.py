@@ -3,6 +3,7 @@ A program to compare the acurracy of Keras models with and without
 compression.
 """
 
+# TODO: fix progress bar
 # TODO: TEST Compress by sparsification (implemented in proc_dense_layer)
 # TODO: Closses difference
 
@@ -38,7 +39,7 @@ def config():
                                 top_k_categorical_accuracy]}
     gen_args = {'img_dir': "/home/vatai/tmp/ilsvrc/db",
                 'val_file': "/home/vatai/tmp/ilsvrc/caffe_ilsvrc12/val.txt",
-                'batch_size': 64,
+                'batch_size': 32,
                 'fast_mode': False}
     eval_args = {'max_queue_size': 10,
                  'workers': 1,
@@ -182,5 +183,5 @@ def proc_all_models(gen_args, json_name):
                                                    len(model_names)))
             print(">>>>>> {} result = {}".format(name, result))
             aggregation[name] = result
-    json.dump(aggregation, open(result_file, "w"))
+        json.dump(aggregation, open(result_file, "w"))
     return aggregation
