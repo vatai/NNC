@@ -9,12 +9,14 @@ compression.
 import json
 import os.path
 import numpy as np
+import telegram
 import keras.applications as Kapp
 from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
 from keras.layers.core import Dense
 from sacred import Experiment
 # from sacred.utils import apply_backspaces_and_linefeeds # for progressbars
 from sacred.observers import FileStorageObserver
+from sacred.observers import TelegramObserver
 from generators import CropGenerator
 from utils import get_results_dir
 
@@ -22,6 +24,7 @@ from utils import get_results_dir
 EX = Experiment()
 # EX.captured_out_filter = apply_backspaces_and_linefeeds
 EX.observers.append(FileStorageObserver.create(get_results_dir(__file__)))
+EX.observers.append(TelegramObserver.from_config('telegram.json'))
 
 
 @EX.config
@@ -165,9 +168,10 @@ def proc_all_models(gen_args, json_name):
                    "inceptionresnetv2", "mobilenet", "mobilenetv2",
                    "densenet121", "densenet169", "densenet201", "nasnetmobile",
                    "nasnetlarge"]
+
     if gen_args['fast_mode']:
         model_names = [model_names[3]]
-    basedir = EX.observers[-1].basedir
+    basedir = EX.observers[0].basedir
     result_file = os.path.join(basedir, "{}.json".format(json_name))
     aggregation = {}  # aggregate all results in a dictionary
     for index, name in enumerate(model_names):
@@ -179,3 +183,4 @@ def proc_all_models(gen_args, json_name):
             print(">>>>>> {} result = {}".format(name, result))
             aggregation[name] = result
     json.dump(aggregation, open(result_file, "w"))
+    return aggregation
