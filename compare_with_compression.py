@@ -28,15 +28,16 @@ EX.observers.append(FileStorageObserver.create(get_results_dir(__file__)))
 def config():
     """Config function for the experiment."""
     # pylint: disable=unused-variable
-    compile_args = {'optimizer': 'RMSprop',  # noqa: F841
+    compile_args = {'optimizer': 'RMSprop',
                     'loss': 'categorical_crossentropy',
                     'metrics': [categorical_accuracy,
                                 top_k_categorical_accuracy]}
-    gen_args = {'img_dir': "/home/vatai/tmp/ilsvrc/db",  # noqa: F841
+    gen_args = {'img_dir': "/home/vatai/tmp/ilsvrc/db",
                 'val_file': "/home/vatai/tmp/ilsvrc/caffe_ilsvrc12/val.txt",
                 'batch_size': 64,
-                'fast_mode': False}
-    eval_args = {'max_queue_size': 10,  # noqa: F841
+                'fast_mode': False,
+                'json_name': 'result'}
+    eval_args = {'max_queue_size': 10,
                  'workers': 1,
                  'use_multiprocessing': False}
     # For the no processing (original/gold results), set proc_args={}
@@ -82,7 +83,11 @@ def evaluate(model, preproc_args, compile_args, gen_args, eval_args):
 
 @EX.capture
 def proc_model(model_name, proc_args):
-    """Process one model based on the model name."""
+    """
+    Process one model based on the model name.  If proc_args is {} or
+    None then evaluate all models, as provided by keras, otherwise
+    process the Dense layers using some method.
+    """
     # because of sacred:
     # pylint: disable=no-value-for-parameter
     model_dic = {"xception":
@@ -141,20 +146,15 @@ def proc_model(model_name, proc_args):
     model = model_cls()
     layers = get_same_type_layers(model.layers)
     if not layers:
+        # If the model has no dense layers, skip it by returning None.
         return None
-
-    # The json output should probably be moved to main()
-    basedir = EX.observers[-1].basedir
-    result_file = os.path.join(basedir, "{}.json".format(model_name))
-    if proc_args == {}:
-        gold = evaluate(model, preproc_args)
-        json.dump({"gold": gold}, open(result_file, "w"))
-        return gold
+    if not proc_args:
+        # if proc_args == None or {} then just evaluate.
+        return evaluate(model, preproc_args)
     for layer in layers:
         new_layer = proc_dense_layer(layer, **proc_args)
-        layer.set_weights(new_layer) 
+        layer.set_weights(new_layer)
     result = evaluate(model, preproc_args)
-    json.dump(result, open(result_file, "w"))
     return result
 
 
@@ -167,7 +167,15 @@ def proc_all_models(gen_args):
                    "nasnetlarge"]
     if gen_args['fast_mode']:
         model_names = [model_names[3]]
+    basedir = EX.observers[-1].basedir
+    result_file = os.path.join(basedir, "{}.json".format(gen_args['json_name']))
+    aggregation = {}  # aggregate all results in a dictionary
     for index, name in enumerate(model_names):
-        print(">>>>>> {} - {}/{}".format(name, index + 1, len(model_names)))
         result = proc_model(name)
-        print(">>>>>> {} result = {}".format(name, result))
+        # If proc model returned none, then it did nothing so skip.
+        if result:
+            print(">>>>>> {} - {}/{} Done.".format(name, index + 1,
+                                                   len(model_names)))
+            print(">>>>>> {} result = {}".format(name, result))
+            aggregation[name] = result
+    json.dump(aggregation, open(result_file, "w"))
