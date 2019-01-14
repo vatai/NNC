@@ -28,6 +28,7 @@ EX.observers.append(FileStorageObserver.create(get_results_dir(__file__)))
 def config():
     """Config function for the experiment."""
     # pylint: disable=unused-variable
+    json_name = 'results'
     compile_args = {'optimizer': 'RMSprop',
                     'loss': 'categorical_crossentropy',
                     'metrics': [categorical_accuracy,
@@ -35,8 +36,7 @@ def config():
     gen_args = {'img_dir': "/home/vatai/tmp/ilsvrc/db",
                 'val_file': "/home/vatai/tmp/ilsvrc/caffe_ilsvrc12/val.txt",
                 'batch_size': 64,
-                'fast_mode': False,
-                'json_name': 'result'}
+                'fast_mode': False}
     eval_args = {'max_queue_size': 10,
                  'workers': 1,
                  'use_multiprocessing': False}
@@ -159,7 +159,7 @@ def proc_model(model_name, proc_args):
 
 
 @EX.automain
-def proc_all_models(gen_args):
+def proc_all_models(gen_args, json_name):
     """Process all models."""
     model_names = ["xception", "vgg16", "vgg19", "resnet50", "inceptionv3",
                    "inceptionresnetv2", "mobilenet", "mobilenetv2",
@@ -168,7 +168,7 @@ def proc_all_models(gen_args):
     if gen_args['fast_mode']:
         model_names = [model_names[3]]
     basedir = EX.observers[-1].basedir
-    result_file = os.path.join(basedir, "{}.json".format(gen_args['json_name']))
+    result_file = os.path.join(basedir, "{}.json".format(json_name))
     aggregation = {}  # aggregate all results in a dictionary
     for index, name in enumerate(model_names):
         result = proc_model(name)
