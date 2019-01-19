@@ -3,8 +3,8 @@ A program to compare the acurracy of Keras models with and without
 compression.
 """
 
-# TODO: fix progress bar
-# TODO: TEST Compress by sparsification (implemented in proc_dense_layer)
+# TODO: measure sparsification
+# TODO: plot results ./report_plot.py
 # TODO: Closses difference
 
 import json
