@@ -1,5 +1,35 @@
 #+TITLE: NNC - neural networks compression: global work plan
 #+OPTIONS: toc:nil p:t
-* TODO [#B] look at the top of ~/code/NNC/compare_with_compression.py
-  SCHEDULED: <2018-12-26 水>
+* TODO NNC [[file:~/code/NNC/compare_with_compression.py][C-o here]]
+  SCHEDULED: <2019-01-19 土 .+1d>
+  :PROPERTIES:
+  :STYLE:    habit
+  :LAST_REPEAT: [2019-01-18 金 21:37]
+  :END:
+  - State "DONE"       from "TODO"       [2019-01-18 金 21:37]
+  - State "DONE"       from "TODO"       [2019-01-17 木 23:29]
+  - State "DONE"       from "TODO"       [2019-01-16 水 23:26]
+  - State "DONE"       from "TODO"       [2019-01-15 火 23:26]
+  - State "DONE"       from "TODO"       [2019-01-14 月 23:26]
+  - State "DONE"       from "TODO"       [2019-01-13 日 23:26]
+  - State "DONE"       from "TODO"       [2019-01-12 土 23:26]
+  - State "DONE"       from "TODO"       [2019-01-11 金 23:26]
+  - State "DONE"       from "TODO"       [2019-01-10 木 23:26]
+  - State "DONE"       from "TODO"       [2019-01-09 水 23:26]
+  - State "DONE"       from "TODO"       [2019-01-08 火 23:26]
+  - State "DONE"       from "TODO"       [2019-01-07 月 23:26]
+  - State "DONE"       from "TODO"       [2019-01-06 日 23:26]
+  - State "DONE"       from "TODO"       [2019-01-05 土 23:26]
+  - State "DONE"       from "TODO"       [2019-01-04 金 23:26]
+  - State "DONE"       from "TODO"       [2019-01-03 木 23:26]
+  - State "DONE"       from "TODO"       [2019-01-02 水 23:26]
+  - State "DONE"       from "TODO"       [2019-01-01 火 23:26]
+  - State "DONE"       from "TODO"       [2018-12-31 月 23:26]
+  - State "DONE"       from "TODO"       [2018-12-30 日 23:26]
+  - State "DONE"       from "TODO"       [2018-12-29 土 23:26]
+  - State "DONE"       from "TODO"       [2018-12-28 金 23:26]
+  - State "DONE"       from "TODO"       [2018-12-26 水 23:26]
+  - State "DONE"       from "TODO"       [2018-12-25 火 23:26]
+* ISSUES
+** vgg16 top1 error drastically worse for sparsification
 * TODO permutation compression????
