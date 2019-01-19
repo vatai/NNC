@@ -86,7 +86,7 @@ def evaluate(model, preproc_args, compile_args, gen_args, eval_args):
 
 
 @EX.capture
-def proc_model(model_name, proc_args):
+def proc_model(model_name, proc_args=None):
     """
     Process one model based on the model name.  If proc_args is {} or
     None then evaluate all models, as provided by keras, otherwise
