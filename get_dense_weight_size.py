@@ -5,6 +5,7 @@ pretrained model.
 
 import pickle
 import pprint
+import numpy as np
 import keras.applications as Kapp
 from keras.layers.core import Dense
 from sacred import Experiment
@@ -21,13 +22,42 @@ def config():
                    "inceptionv3", "inceptionresnetv2", "mobilenet",
                    "mobilenetv2", "densenet121", "densenet169",
                    "densenet201", "nasnetmobile", "nasnetlarge"]
+    proc_args = {'norm': False,
+                 'epsilon': 0}
+
 
 def get_same_type_layers(layers, ltype=Dense):
     """Return only Dense layers (or any other type)."""
     return list(filter(lambda x: isinstance(x, ltype), layers))
 
 
-def proc_model(name):
+def proc_dense_layer(layer, norm=False, epsilon=0):
+    """
+    Return the number of non-zero elements in a layer after
+    processing.
+    TODO finish.
+    """
+    assert isinstance(layer, Dense)
+    dense, bias = layer.get_weights()
+    args = np.argsort(dense, axis=1)
+    out = np.take_along_axis(dense, args, axis=1)
+    norms_dense = np.linalg.norm(dense, axis=1)
+    if norm:
+        out /= norms_dense[:, np.newaxis]
+    mean = out.mean(axis=0)
+    compressed_dense = np.take_along_axis(mean[np.newaxis, :],
+                                          np.argsort(args, axis=1),
+                                          axis=1)
+    if epsilon != 0:
+        cond = compressed_dense < epsilon
+        compressed_dense[cond] = 0
+    if norm:
+        compressed_dense *= norms_dense[:, np.newaxis]
+    return compressed_dense, bias
+
+
+@EX.capture
+def proc_model(name, proc_args=None):
     """Process one model based on the model name."""
     # because of sacred:
     # pylint: disable=no-value-for-parameter
@@ -64,6 +94,7 @@ def proc_model(name):
     for layer in layers:
         weights = layer.get_weights()
         shape = weights[0].shape
+        nonzero = proc_dense_layer(layer, proc_args)
         result.append(shape)
     return result
 

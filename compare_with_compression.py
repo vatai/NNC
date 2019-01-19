@@ -3,7 +3,7 @@ A program to compare the acurracy of Keras models with and without
 compression.
 """
 
-# TODO: measure sparsification
+# TODO: measure sparsification see ./get_dense_weight_size.py
 # TODO: plot results ./report_plot.py
 # TODO: Closses difference
 
