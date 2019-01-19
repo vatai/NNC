@@ -20,13 +20,19 @@ for file in json_files:
 # pprint(all_results)
 
 
-name = "resnet50"
+name = "vgg16"
 
-for key in sorted(all_results.keys()):
+legend = ([], [])
+for i, key in enumerate(sorted(all_results.keys())):
     out = "| " + str(key) + " | "
     out += " | ".join(map(str, all_results[key][name])) + " |"
     print(out)
-    plt.show()
+    p = plt.bar(i, all_results[key][name][2])
+    legend[0].append(p[0])
+    legend[1].append(key)
+print(legend[1])
+plt.legend(legend[0], legend[1])
+plt.show()
 
 
 print("Done.")
