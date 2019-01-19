@@ -33,6 +33,10 @@ def config():
     """Config function for the experiment."""
     # pylint: disable=unused-variable
     json_name = 'results'
+    model_names = ["xception", "vgg16", "vgg19", "resnet50",
+                   "inceptionv3", "inceptionresnetv2", "mobilenet",
+                   "mobilenetv2", "densenet121", "densenet169",
+                   "densenet201", "nasnetmobile", "nasnetlarge"]
     compile_args = {'optimizer': 'RMSprop',
                     'loss': 'categorical_crossentropy',
                     'metrics': [categorical_accuracy,
@@ -163,12 +167,8 @@ def proc_model(model_name, proc_args=None):
 
 
 @EX.automain
-def proc_all_models(gen_args, json_name):
+def proc_all_models(model_names, gen_args, json_name):
     """Process all models."""
-    model_names = ["xception", "vgg16", "vgg19", "resnet50", "inceptionv3",
-                   "inceptionresnetv2", "mobilenet", "mobilenetv2",
-                   "densenet121", "densenet169", "densenet201", "nasnetmobile",
-                   "nasnetlarge"]
 
     if gen_args['fast_mode']:
         model_names = [model_names[3]]
