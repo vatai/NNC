@@ -1,4 +1,7 @@
 # coding: utf-8
+
+"""This was used to process the output of the experiments."""
+
 with open(file_path) as file:
     i = 0
     gold, norm, nonorm = {}, {}, {}
