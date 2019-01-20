@@ -3,8 +3,8 @@ This program outputs the size of the dense layers in each keras
 pretrained model.
 """
 
-import pickle
-import pprint
+import os
+import json
 import numpy as np
 import keras.applications as Kapp
 from keras.layers.core import Dense
@@ -48,12 +48,8 @@ def proc_dense_layer(layer, norm=False, epsilon=0):
     compressed_dense = np.take_along_axis(mean[np.newaxis, :],
                                           np.argsort(args, axis=1),
                                           axis=1)
-    if epsilon != 0:
-        cond = compressed_dense < epsilon
-        compressed_dense[cond] = 0
-    if norm:
-        compressed_dense *= norms_dense[:, np.newaxis]
-    return compressed_dense, bias
+    cond = np.abs(compressed_dense) >= epsilon
+    return np.count_nonzero(cond, )
 
 
 @EX.capture
@@ -94,22 +90,22 @@ def proc_model(name, proc_args=None):
     for layer in layers:
         weights = layer.get_weights()
         shape = weights[0].shape
-        nonzero = proc_dense_layer(layer, proc_args)
-        result.append(shape)
-    return result
-
-
-def proc_all_models(model_names):
-    """Process all models."""
-    result = {}
-    for index, name in enumerate(model_names):
-        print(">>>>>> {} - {}/{}".format(name, index + 1, len(model_names)))
-        result[name] = proc_model(name)
+        after_compression = proc_dense_layer(layer, proc_args)
+        layer_result = (shape, after_compression)
+        result.append(layer_result)
     return result
 
 
 @EX.automain
-def main(model_names):
-    result = proc_all_models(model_names)
-    pickle.dump(result, open("weights.pickl", 'bw'))
-    pprint.pprint(result)
+def proc_all_models(model_names, proc_args):
+    """Process all models: print and store results."""
+    basedir = EX.observers[0].basedir
+    norm = "" if proc_args['norm'] else "no"
+    filename = "weight_{}norm_{:02}.json".format(norm, proc_args['epsilon'])
+    result_file = os.path.join(basedir, filename)
+    result = {}
+    for index, name in enumerate(model_names):
+        print(">>>>>> {} - {}/{}".format(name, index + 1, len(model_names)))
+        result[name] = proc_model(name)
+        json.dump(result, open(result_file, 'w'))
+    return result
