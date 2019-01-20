@@ -72,7 +72,7 @@ def proc_dense_layer(layer, norm=False, epsilon=0):
                                           np.argsort(args, axis=1),
                                           axis=1)
     if epsilon != 0:
-        cond = compressed_dense < epsilon
+        cond = np.abs(compressed_dense) < epsilon
         compressed_dense[cond] = 0
     if norm:
         compressed_dense *= norms_dense[:, np.newaxis]
