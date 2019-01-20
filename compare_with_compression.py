@@ -167,11 +167,9 @@ def proc_model(model_name, proc_args=None):
 
 
 @EX.automain
-def proc_all_models(model_names, gen_args, json_name):
+def proc_all_models(model_names, json_name):
     """Process all models."""
 
-    if gen_args['fast_mode']:
-        model_names = [model_names[3]]
     basedir = EX.observers[0].basedir
     result_file = os.path.join(basedir, "{}.json".format(json_name))
     aggregation = {}  # aggregate all results in a dictionary
