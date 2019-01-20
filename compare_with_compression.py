@@ -42,7 +42,7 @@ def config():
                     'loss': 'categorical_crossentropy',
                     'metrics': [categorical_accuracy,
                                 top_k_categorical_accuracy]}
-    gen_args = {'db_path': expanduser("~/tmp/ilsvrc/db"),
+    gen_args = {'img_dir': expanduser("~/tmp/ilsvrc/db"),
                 'val_file': expanduser("~/tmp/ilsvrc/caffe_ilsvrc12/val.txt"),
                 'batch_size': 32,
                 'fast_mode': False}
