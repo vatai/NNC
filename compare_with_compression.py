@@ -9,6 +9,7 @@ compression.
 
 import json
 import os.path
+from os.path import expanduser
 import numpy as np
 import telegram
 import keras.applications as Kapp
@@ -41,8 +42,8 @@ def config():
                     'loss': 'categorical_crossentropy',
                     'metrics': [categorical_accuracy,
                                 top_k_categorical_accuracy]}
-    gen_args = {'img_dir': "/home/vatai/tmp/ilsvrc/db",
-                'val_file': "/home/vatai/tmp/ilsvrc/caffe_ilsvrc12/val.txt",
+    gen_args = {'db_path': expanduser("~/tmp/ilsvrc/db"),
+                'val_file': expanduser("~/tmp/ilsvrc/caffe_ilsvrc12/val.txt"),
                 'batch_size': 32,
                 'fast_mode': False}
     eval_args = {'max_queue_size': 10,

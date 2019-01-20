@@ -1,8 +1,6 @@
 #!/usr/bin/bash
 #SBATCH
 if [ -e /usr/local/anaconda3/lib ]; then
-    export PATH=/usr/local/cuda/bin:/usr/local/anaconda3/bin:$PATH
-    export LD_LIBRARY_PATH=/usr/local/cuda/lib:/usr/local/anaconda3/lib:$LD_LIBRARY_PATH
     srun=srun
 fi
 
