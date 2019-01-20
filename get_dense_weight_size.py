@@ -16,6 +16,7 @@ from utils import get_results_dir
 EX = Experiment()
 EX.observers.append(FileStorageObserver.create(get_results_dir(__file__)))
 
+
 @EX.config
 def config():
     model_names = ["xception", "vgg16", "vgg19", "resnet50",
