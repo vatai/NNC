@@ -48,8 +48,11 @@ def proc_dense_layer(layer, norm=False, epsilon=0):
     compressed_dense = np.take_along_axis(mean[np.newaxis, :],
                                           np.argsort(args, axis=1),
                                           axis=1)
-    cond = np.abs(compressed_dense) >= epsilon
-    return np.count_nonzero(cond, )
+    cond = np.abs(compressed_dense) < epsilon
+    compressed_dense[cond] = 0
+    nzs = np.count_nonzero(compressed_dense, axis=1)
+    assert np.all(nzs == nzs[0])
+    return (nzs.shape[0], int(nzs[0]))
 
 
 @EX.capture
@@ -90,7 +93,7 @@ def proc_model(name, proc_args=None):
     for layer in layers:
         weights = layer.get_weights()
         shape = weights[0].shape
-        after_compression = proc_dense_layer(layer, proc_args)
+        after_compression = proc_dense_layer(layer, **proc_args)
         layer_result = (shape, after_compression)
         result.append(layer_result)
     return result
