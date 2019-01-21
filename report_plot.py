@@ -16,8 +16,8 @@ def proc_entry(name, all_results):
     """
     lgn1 = ([], [])
     lgn2 = ([], [])
-    out = "\nfile:{}.png".format(name)
-    out += "\n* {}".format(name)
+    out = "\n* {}".format(name)
+    out += "\nfile:{}.png".format(name)
     fig, (ax1, ax2) = plt.subplots(1, 2)
     for i, key in enumerate(sorted(all_results[0].keys())):
         out += "\n| " + str(key) + " | "
