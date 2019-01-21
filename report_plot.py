@@ -6,33 +6,67 @@ This program plots the results obtained by
 import glob
 import os
 import json
-# from pprint import pprint
 import matplotlib.pyplot as plt
 
-json_path = "./report/bbking/*.json"
 
-json_files = glob.glob(json_path)
-all_results = {}
-for file in json_files:
-    name = os.path.basename(file)
-    name = os.path.splitext(name)[0]
-    all_results[name] = json.load(open(file, 'r'))
-# pprint(all_results)
+def proc_entry(name, all_results):
+    """
+    Save a plot for one set of data, and return the org-mode text to
+    be written to a text file.
+    """
+    lgn1 = ([], [])
+    lgn2 = ([], [])
+    out = "\nfile:{}.png".format(name)
+    out += "\n* {}".format(name)
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    for i, key in enumerate(sorted(all_results[0].keys())):
+        out += "\n| " + str(key) + " | "
+        print(key)
+        out += " {} |".format(all_results[1][key][name]) 
+        out += " | ".join(map(str, all_results[0][key][name][1:])) + " |"
+        ax1.set_ylim(0, 1)
+        ax2.set_ylim(0, 1)
+        p1 = ax1.bar(i, all_results[0][key][name][1])
+        p2 = ax2.bar(i, all_results[0][key][name][2])
+        lgn1[0].append(p1[0])
+        lgn1[1].append(key)
+        lgn2[0].append(p2[0])
+        lgn2[1].append(key)
+    fig.legend(lgn1[0], lgn1[1], 'upper left')
+    fig.legend(lgn2[0], lgn2[1], 'upper right')
+    ax1.set_title(name + " top1")
+    ax2.set_title(name + " top5")
+    plt.savefig(name)
+    print(all_results[1].keys())
+    return out
 
 
-name = "vgg16"
+def get_results(json_path):
+    """
+    Gather data from all json files from a directory.  The parameter
+    is a pattorn selecting only json files.
+    """
+    json_files = glob.glob(json_path)
+    acc_results = {}
+    weight_result = {}
+    for file in json_files:
+        name = os.path.basename(file)
+        name = os.path.splitext(name)[0]
+        acc_results[name] = json.load(open(file, 'r'))
+        # wfile = file[:18] + "/weight_" + file[18:-8] + "_{}".format(10**int(file[-8:-5])) + ".json"
+        wfile = "{}weight_{}_{}.json".format(file[:18],
+                                             file[18:-8],
+                                             10**int(file[-8:-5]))
+        print(file, wfile)
+        weight_result[name] = json.load(open(wfile, 'r'))
+    return (acc_results, weight_result)
 
-legend = ([], [])
-for i, key in enumerate(sorted(all_results.keys())):
-    out = "| " + str(key) + " | "
-    out += " | ".join(map(str, all_results[key][name])) + " |"
-    print(out)
-    p = plt.bar(i, all_results[key][name][2])
-    legend[0].append(p[0])
-    legend[1].append(key)
-print(legend[1])
-plt.legend(legend[0], legend[1])
-plt.show()
 
-
+json_path = "./report/20190121/n*.json"
+all_results = get_results(json_path)
+with open("report.org", 'w') as f:
+    for name in all_results[0]['norm-02'].keys():
+        print(name)
+        out = proc_entry(name, all_results)
+        f.write(out)
 print("Done.")
