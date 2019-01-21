@@ -21,7 +21,6 @@ def proc_entry(name, all_results):
     fig, (ax1, ax2) = plt.subplots(1, 2)
     for i, key in enumerate(sorted(all_results[0].keys())):
         out += "\n| " + str(key) + " | "
-        print(key)
         out += " {} |".format(all_results[1][key][name]) 
         out += " | ".join(map(str, all_results[0][key][name][1:])) + " |"
         ax1.set_ylim(0, 1)
@@ -37,7 +36,6 @@ def proc_entry(name, all_results):
     ax1.set_title(name + " top1")
     ax2.set_title(name + " top5")
     plt.savefig(name)
-    print(all_results[1].keys())
     return out
 
 
@@ -53,7 +51,6 @@ def get_results(json_path):
         name = os.path.basename(file)
         name = os.path.splitext(name)[0]
         acc_results[name] = json.load(open(file, 'r'))
-        # wfile = file[:18] + "/weight_" + file[18:-8] + "_{}".format(10**int(file[-8:-5])) + ".json"
         wfile = "{}weight_{}_{}.json".format(file[:18],
                                              file[18:-8],
                                              10**int(file[-8:-5]))
@@ -66,7 +63,6 @@ json_path = "./report/20190121/n*.json"
 all_results = get_results(json_path)
 with open("report.org", 'w') as f:
     for name in all_results[0]['norm-02'].keys():
-        print(name)
         out = proc_entry(name, all_results)
         f.write(out)
 print("Done.")
