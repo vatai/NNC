@@ -90,6 +90,9 @@ def proc_model(name, proc_args=None):
     model_cls = model_dic[name]
     model = model_cls()
     layers = get_same_type_layers(model.layers)
+    if not layers:
+        # If the model has no dense layers, skip it by returning None.
+        return None
     result = []
     for layer in layers:
         weights = layer.get_weights()
@@ -110,6 +113,8 @@ def proc_all_models(model_names, proc_args):
     result = {}
     for index, name in enumerate(model_names):
         print(">>>>>> {} - {}/{}".format(name, index + 1, len(model_names)))
-        result[name] = proc_model(name)
+        model_result = proc_model(name)
+        if model_result:
+            result[name] = model_result
         json.dump(result, open(result_file, 'w'))
     return result
