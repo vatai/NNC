@@ -1,0 +1,31 @@
+#+OPTIONS: ':t
+#+LATEX_HEADER: \newcommand{\abs}[1]{\lvert #1 \rvert}
+#+TITLE: Compression of dense layers in neural networks
+** Basic idea
+   Let $\mathbf{W} \in \mathbb{R}^{m \times n}$ be the weight matrix of a dense layer in a neural network.  
+   Let $w_{i,:}$ the \(i\)-th row, and $w_{:,j}$ the \(j\)-th column and $w_{i,j}$ the value in the \(i\)-th row and \(j\)-th column of $\mathbf{W}$.  
+   In this case $m$ is the size of the input, and $n$ is the size of the output.
+    
+** Assumption 
+   Our assumption is that, $\exists \mathcal{S}:\mathbb{N} \to \mathbb{R}$ and
+   $\exists{\epsilon} > 0$ so that $\forall i \in \{1, \ldots, m\}$
+   - $\exists \alpha_i \in \mathbb{R}^{+}$
+   - $\exists \beta_i \in \mathbb{R}$
+   - $\exists \pi_i: \{1, \ldots, n\} \to \{1, \ldots, n\}$ permutation
+   such that $\forall j: \abs{\mathcal{S}_j - \alpha_i w_{i,\pi_i(j)} + \beta_i} < \epsilon$.
+   $\mathcal{S}$ is the "S" shape, to which every row is similar to.
+
+   The three components in the enumeration above can be summarised as a single transformation of a row in a matrix: $f_i(v) = \alpha_i \cdot (v \circ \pi_i) + \beta_i$ (if we consider the vector $v$ as a function with a $\mathbb{N} \to \mathbb{N}$ signature), or simply $f_i(v_j) = \alpha_i v_{\pi_i(j)} + \beta_i$.
+   
+   From this, it is clear that $f_i$ is characterised by a the triplet
+   $(\pi_i, \alpha_i, \beta_i)$, where the permutation $\pi_i$ takes
+   the most space (but probably less then the original row $w_{i,:}$).
+   Since $f_i$ is a composition of a permutation and a linear
+   transformation, it is also invertable, that is $\exists f_i^{-1}$.
+
+   Our idea is to check the performance of the DNN by using
+   $f_i^{-1}(\mathcal{S}) = \alpha_i^{-1}(\mathcal{S} \circ
+   \pi_i^{-1} - \beta_i)$ instead of $w_{i,:}$, that is substitute
+   $w_{i,j}$ with $f_i^{-1}(\mathcal{S}_j) =
+   \frac{\mathcal{S}_{\pi_i^{-1}(j)} - \beta_i}{\alpha_i}$ in the hope
+   of efficient compression of weights.
