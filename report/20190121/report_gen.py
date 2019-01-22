@@ -43,9 +43,11 @@ def compile_results(base, exps=range(1, 6)):
     for model in gold.keys():
         all_results[model] = {}
         all_results[model]['gold'] = gold[model]
+        all_results[model]['weights'] = {}
+        all_results[model]['results'] = {}
         for norm in ["norm", "nonorm"]:
-            all_results[model]['weights'] = {norm: {}}
-            all_results[model]['results'] = {norm: {}}
+            all_results[model]['weights'][norm] = {}
+            all_results[model]['results'][norm] = {}
             for exp in exps:
                 results = get_json_result(base, norm, exp)
                 all_results[model]['results'][norm][exp] = results[model]
@@ -54,32 +56,42 @@ def compile_results(base, exps=range(1, 6)):
     return all_results
 
 
-def proc_model(model):
+def fig_model(model, name):
     fig, ax = plt.subplots(1,2)
-    leg_txt = []
-    leg_clr = []
-    y_vals = []
-    plots = []
-    leg_txt = ["top1", "top5"]
+    title = ["top1", "top5"]
     # 2 subfigs, top1 and top5 accuracy
     for idx in range(2):
-        # Start with the gold
         ax[idx].bar(0, model['gold'][idx + 1])
-        y_vals.append({})
-        plots.append({})
+        # Start with the gold
         leg_clr = []
+        leg_txt = []
         # y[idx] has the norm and nonorm values
         for norm in model['results'].keys():
             x_vals = []
-            y_vals[idx][norm] = []
+            y_vals = []
             for exp, val in model['results'][norm].items():
                 x_vals.append(exp)
-                y_vals[idx][norm].append(val[idx+1])
-                plots[idx][norm] = ax[idx].plot(x_vals, y_vals[idx][norm])
-                leg_clr.append(plots[idx][norm])
+                y_vals.append(val[idx+1])
+            plot = ax[idx].plot(x_vals, y_vals)
+            leg_clr.append(plot[0])
+            leg_txt.append(title[idx] + norm)
+
+            x_vals = []
+            y_vals = []
+            for exp, val in model['weights'][norm].items():
+                org, comp = val[0][0][1], val[0][1][1]
+                print(val[0], org, comp, comp / org, exp)
+                y_val = comp / org
+                x_vals.append(exp)
+                y_vals.append(y_val)
+            plot = ax[idx].plot(x_vals, y_vals)
+            leg_clr.append(plot[0])
+            leg_txt.append("compression: " + norm)
+                
         ax[idx].legend(leg_clr, leg_txt)
         ax[idx].set_ylim(0, 1)
-    plt.show()
+        ax[idx].set_title(name + ": " + title[idx])
+    return fig
 
 
 def proc_all_models():
@@ -87,9 +99,10 @@ def proc_all_models():
     base = os.path.expanduser("~/code/NNC/report/20190121/")
     gold = get_json_gold(base)
     ar = compile_results(base)
+    #pprint(ar)
     for model in ar.keys():
-        proc_model(ar[model])
-        break
+        fig = fig_model(ar[model], model)
+        fig.savefig(model)
     # pprint(ar)
 
 
