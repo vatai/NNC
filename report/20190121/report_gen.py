@@ -80,30 +80,64 @@ def fig_model(model, name):
             y_vals = []
             for exp, val in model['weights'][norm].items():
                 org, comp = val[0][0][1], val[0][1][1]
-                print(val[0], org, comp, comp / org, exp)
+                # print(val[0], org, comp, comp / org, exp)
                 y_val = comp / org
                 x_vals.append(exp)
                 y_vals.append(y_val)
-            plot = ax[idx].plot(x_vals, y_vals)
+            plot = ax[idx].plot(x_vals, y_vals, '--')
             leg_clr.append(plot[0])
             leg_txt.append("compression: " + norm)
-                
+
         ax[idx].legend(leg_clr, leg_txt)
         ax[idx].set_ylim(0, 1)
         ax[idx].set_title(name + ": " + title[idx])
     return fig
 
 
+def get_table(model, branch):
+    results = model[branch]
+    table = []
+    if branch == 'results':
+        line = "| {} | nomod | "
+        line += " | ".join(map(str, model['gold']))
+        line += " |\n"
+        table.append(line)
+    for norm in results.keys():
+        for exp, val in results[norm].items():
+            line = "| {} | $10^{{-{}}}$ | ".format(norm, exp)
+            line += " | ".join(map(str, val))
+            line += " |\n"
+            table.append(line)
+    return table
+
+
 def proc_all_models():
     """The main function."""
     base = os.path.expanduser("~/code/NNC/report/20190121/")
-    gold = get_json_gold(base)
-    ar = compile_results(base)
-    #pprint(ar)
-    for model in ar.keys():
-        fig = fig_model(ar[model], model)
-        fig.savefig(model)
-    # pprint(ar)
+    results = compile_results(base)
+    for name, model in results.items():
+        fig = fig_model(model, name)
+        img_name = name + ".png"
+        fig.savefig(img_name)
+        plt.close(fig)
+
+
+    report_name = "report.org"
+    with open(report_name, 'w') as report_file:
+        org_header = """#+LATEX_HEADER: \\usepackage[margin=5mm]{geometry}
+#+OPTIONS: toc:nil
+
+"""
+        report_file.write(org_header)
+        for name, model in results.items():
+            img_name = name + ".png"
+            results_table = get_table(model, 'results')
+            compression_table = get_table(model, 'weights')
+            report_file.write("* {}\n".format(name))
+            report_file.write("file:{}\n".format(img_name))
+            report_file.writelines(results_table)
+            report_file.write("\n")
+            report_file.writelines(compression_table)
 
 
 proc_all_models()
