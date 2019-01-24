@@ -33,22 +33,25 @@ def get_same_type_layers(layers, ltype=Dense):
     return list(filter(lambda x: type(x) == ltype, layers))
 
 
-def proc_dense_layer(name, layer, idx, normalised=True):
+def proc_dense_layer(name, layer, idx):
     """Process a single layer if it is Dense (or other given type)."""
     assert type(layer) == Dense
     weights = layer.get_weights()
     dense = weights[0]
     sorted_dense = np.sort(dense, axis=1)
     norms_dense = np.linalg.norm(dense, axis=1)
-    if normalised:
-        out = sorted_dense / norms_dense[:, np.newaxis]
-    else:
-        out = sorted_dense
-    plt.plot(out.T)
-    plt.title("{}-{} - Normalised: {}".format(name, idx, normalised))
-    #plt.show()
-    plt.savefig("imgs/{}-{}{}".format(name, idx, "-norm" if normalised else ""))
-    plt.close()
+
+    normalised = sorted_dense / norms_dense[:, np.newaxis]
+    fig, ax = plt.subplots(1, 2)
+    ax[0].plot(normalised.T)
+    ax[0].set_title("{}-{} - Normalised".format(name, idx))
+    ax[0].set_ylim(-1, 1)
+    ax[1].plot(sorted_dense.T)
+    ax[1].set_title("{}-{} - Not normalised".format(name, idx))
+    ax[1].set_ylim(-1, 1)
+    # plt.show()
+    fig.savefig("imgs/{}-{}".format(name, idx))
+    plt.close(fig)
 
 
 def proc_model(name="vgg16"):
@@ -56,8 +59,7 @@ def proc_model(name="vgg16"):
     model = get_model(name)
     layers = get_same_type_layers(model.layers)
     for idx, layer in enumerate(layers):
-        proc_dense_layer(name, layer, idx, True)
-        proc_dense_layer(name, layer, idx, False)
+        proc_dense_layer(name, layer, idx)
 
 
 def proc_all_models():
@@ -77,8 +79,5 @@ def main():
     proc_all_models()
 
 
-if __name__ == "__main__":
-    print("CLI run")
-    main()
-else:
-    main()
+main()
+print("Done")
