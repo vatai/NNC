@@ -4,7 +4,7 @@ import pickle
 from pprint import pprint
 from sacred import Experiment
 from sacred.observers import FileStorageObserver
-from utils import get_results_dir
+from nnclib.utils import get_results_dir
 
 EX = Experiment()
 EX.observers.append(FileStorageObserver.create(get_results_dir(__file__)))

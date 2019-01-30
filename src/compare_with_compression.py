@@ -19,8 +19,8 @@ from sacred import Experiment
 # from sacred.utils import apply_backspaces_and_linefeeds # for progressbars
 from sacred.observers import FileStorageObserver
 from sacred.observers import TelegramObserver
-from generators import CropGenerator
-from utils import get_results_dir
+from nnclib.generators import CropGenerator
+from nnclib.utils import get_results_dir
 
 
 EX = Experiment()
