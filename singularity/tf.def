@@ -1,0 +1,10 @@
+Bootstrap: docker
+From: tensorflow/tensorflow:latest-gpu-py3
+
+%post
+    # apt-get -y update
+    # apt-get -y install nvidia-cuda-toolkit
+    pip3 install --upgrade pip
+    pip3 install python-telegram-bot
+    pip3 install sacred
+    pip3 install keras
