@@ -12,6 +12,7 @@ import os.path
 from os.path import expanduser
 import numpy as np
 import telegram
+from tensorflow import set_random_seed
 import keras.applications as Kapp
 from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
 from keras.layers.core import Dense
@@ -52,6 +53,7 @@ def config():
     # For the no processing (original/gold results), set proc_args={}
     proc_args = {'norm': False,
                  'epsilon': 0}
+    seed = 42
 
 
 def get_same_type_layers(layers, ltype=Dense):
@@ -168,9 +170,10 @@ def proc_model(model_name, proc_args=None):
 
 
 @EX.automain
-def proc_all_models(model_names, json_name):
+def proc_all_models(model_names, json_name, _seed):
     """Process all models."""
 
+    set_random_seed(_seed)
     basedir = EX.observers[0].basedir
     result_file = os.path.join(basedir, "{}.json".format(json_name))
     aggregation = {}  # aggregate all results in a dictionary

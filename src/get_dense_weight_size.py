@@ -6,6 +6,7 @@ pretrained model.
 import os
 import json
 import numpy as np
+from tensorflow import set_random_seed
 import keras.applications as Kapp
 from keras.layers.core import Dense
 from sacred import Experiment
@@ -25,6 +26,7 @@ def config():
                    "densenet201", "nasnetmobile", "nasnetlarge"]
     proc_args = {'norm': False,
                  'epsilon': 0}
+    seed = 42
 
 
 def get_same_type_layers(layers, ltype=Dense):
@@ -104,8 +106,9 @@ def proc_model(name, proc_args=None):
 
 
 @EX.automain
-def proc_all_models(model_names, proc_args):
+def proc_all_models(model_names, proc_args, _seed):
     """Process all models: print and store results."""
+    set_random_seed(_seed)
     basedir = EX.observers[0].basedir
     norm = "" if proc_args['norm'] else "no"
     filename = "weight_{}norm_{:02}.json".format(norm, proc_args['epsilon'])

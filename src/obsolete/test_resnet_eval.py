@@ -4,6 +4,7 @@ import os.path
 from os.path import expanduser
 import math
 import numpy as np
+from tensorflow import set_random_seed
 import keras.utils
 from keras.preprocessing import image
 from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
@@ -28,6 +29,7 @@ def config():
     eval_args = {'max_queue_size': 10,
                  'workers': 1,
                  'use_multiprocessing': False}
+    seed = 42
 
 
 class EvalGenerator(keras.utils.Sequence):
@@ -64,7 +66,8 @@ class EvalGenerator(keras.utils.Sequence):
 
 
 @EX.automain
-def main(compile_args, gen_args, eval_args):
+def main(compile_args, gen_args, eval_args, _seed):
+    set_random_seed(_seed)
     model = ResNet50(weights='imagenet')
     model.compile(**compile_args)
     generator = EvalGenerator(**gen_args)
