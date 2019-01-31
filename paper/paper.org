@@ -1,7 +1,17 @@
-#+OPTIONS: ':t
+#+OPTIONS: ':t toc:nil
 #+LATEX_HEADER: \newcommand{\abs}[1]{\lvert #1 \rvert}
 #+TITLE: Compression of dense layers in neural networks
-* Main points
+#+AUTHOR: Reiji Suda, Emil VATAI
+
+#+begin_abstract
+  With the intention to apply HPC methods to ML, we attempted
+  compression of layers in deep neural networks, with the goal to
+  improve the speed of ML algorithms.  However, in this attempt we
+  discovered an interesting property of dense layers.
+#+end_abstract
+
+* COMMENT Main points
+  - hpc + ml = compression
   - observation of S shape
   - compression approaches
     - sorting -> averaging -> unsorting
@@ -9,6 +19,38 @@
     - quantization
   - compression efficiency
     - float (4byte) or half (2byte) precision
+
+* COMMENT Questions
+  - me as an author? UTokyo, ELTE both?
+
+* COMMENT Not to forget
+  - Measurements
+  - JSPS
+  - keras with tf backend, sacred (telegram)
+  - github
+  - dataset
+    
+* COMMENT Good paper - notes
+** Abstract
+   :PROPERTIES:
+   :DESCRIPTION: Write last
+   :END:
+  
+   1. The problem
+   2. Why is it interesting
+   3. What does our solution achieve
+   4. What follows from the sollution
+** Introduction (1 page)
+   1. Describe the problem
+   2. State our contribution
+  
+   Statements (evidence in the body)
+** The problem (1 page)
+** Our idea (2 page)
+** The details (5 page)
+** Related work (1-2 pages)
+** Conclusion and future work (0.5 page)
+* COMMENT --- The paper ---
 * Basic idea
   Let $\mathbf{W} \in \mathbb{R}^{m \times n}$ be the weight matrix of a dense layer in a neural network.  
   Let $w_{i,:}$ the \(i\)-th row, and $w_{:,j}$ the \(j\)-th column and $w_{i,j}$ the value in the \(i\)-th row and \(j\)-th column of $\mathbf{W}$.  
@@ -36,12 +78,3 @@
   $w_{i,j}$ with $f_i^{-1}(\mathcal{S}_j) =
   \frac{\mathcal{S}_{\pi_i^{-1}(j)} - \beta_i}{\alpha_i}$ in the hope
   of efficient compression of weights.
-* Important points
-  - Measurements
-  - JSPS
-  - tf, keras, sacred (telegram)
-  - github
-  - dataset
-  - 
-* Questions
-  - me as an author? UTokyo, ELTE both?
