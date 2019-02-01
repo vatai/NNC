@@ -7,7 +7,8 @@ exps = range(10, 12)
 
 prefix = "optirun"
 prefix = "srun singularity exec --nv ./singularity/stf-oldv.sif bash"
-sbatch_str = """#SBATCH -N2 
+sbatch_str = """#!/bin/sh
+#SBATCH -N2 
 #SBATCH --partition=v
 """
 pyfile = "./src/compare_with_compression.py"
