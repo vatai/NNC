@@ -5,13 +5,15 @@ This program generates shell scripts to execute multiple experiments.
 norms = [True, False]
 exps = range(10, 12)
 
-prefix = "optirun"
-prefix = "srun singularity exec --nv ./singularity/stf-oldv.sif bash"
+
+python_cmd = "python"
+pyfile = "./src/compare_with_compression.py"
+
 sbatch_str = """#!/bin/sh
 #SBATCH -N2 
 #SBATCH --partition=v
+srun bash -c 'singularity exec --nv ./singularity/stf-oldv.sif {} {} with {}'
 """
-pyfile = "./src/compare_with_compression.py"
 
 for norm in norms:
     for exp in exps:
@@ -21,5 +23,6 @@ for norm in norms:
         filename = "./runscripts/script_{}_1e-{}".format(norm_str, exp)
         with open(filename, 'w') as runfile:
             runfile.write(sbatch_str)
-            cmd = "{} python {} with {}".format(prefix, pyfile, params)
+            # cmd = "{} {} with {}".format(python_cmd, pyfile, params)
+            cmd = sbatch_str.format(python_cmd, pyfile, params)
             runfile.write(cmd)
