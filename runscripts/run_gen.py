@@ -22,7 +22,6 @@ for norm in norms:
         params = "proc_args.norm={} proc_args.epsilon={}".format(norm, val)
         filename = "./runscripts/script_{}_1e-{}".format(norm_str, exp)
         with open(filename, 'w') as runfile:
-            runfile.write(sbatch_str)
             # cmd = "{} {} with {}".format(python_cmd, pyfile, params)
             cmd = sbatch_str.format(python_cmd, pyfile, params)
             runfile.write(cmd)
