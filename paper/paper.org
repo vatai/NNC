@@ -1,24 +1,19 @@
 #+OPTIONS: ':t toc:nil
 #+LATEX_HEADER: \newcommand{\abs}[1]{\lvert #1 \rvert}
 #+TITLE: Compression of dense layers in neural networks
-#+AUTHOR: Reiji Suda, Emil VATAI
+#+AUTHOR: Reiji SUDA, Emil VATAI
 
 #+begin_abstract
-  With the intention to apply HPC methods to ML, we attempted
-  compression of layers in deep neural networks, with the goal to
-  improve the speed of ML algorithms.  However, in this attempt we
-  discovered an interesting property of dense layers.
+  We present variations on a possible compression method of dense layers in neural networks, with the goal of enabling a more efficient use of extremely large dense layers in large scale applications. 
+  In this paper we present a compression method, which compresses a dense layer to $<50\%$ of the layer's original size stored as 32 bit floats and $<X\%$ originally stored as half-precision floats. 
+  Furthermore, the idea used for compression reveals an interesting pattern in dense layers, which we believe provides valuable insight into the explanation of dense layers.
+  This belief is based on the observation that our compression method kept and sometimes improved the prediction accuracy of neural networks. 
 #+end_abstract
 
+* COMMENT To SLACK
+  Hola! I hope this is not too strange of a question... how much/often do you have dense layers in your models? To be specific, I am not asking about what percentage of layers are dense layers in your models. I.e. a "usual" image recognition model (vgg, resnet) has (let's say) 100 fancy (conv, rnn) layers and one dense layer at the top, only 1%. But and this is true for 99% percent of image recognition models. I am asking about the 99%, so maybe a better phrasing would be "how many of your projects uses at least one dense layer?"
 * COMMENT Main points
   - hpc + ml = compression
-  - observation of S shape
-  - compression approaches
-    - sorting -> averaging -> unsorting
-    - sparsification
-    - quantization
-  - compression efficiency
-    - float (4byte) or half (2byte) precision
 
 * COMMENT Questions
   - me as an author? UTokyo, ELTE both?
@@ -51,13 +46,29 @@
 ** Related work (1-2 pages)
 ** Conclusion and future work (0.5 page)
 * COMMENT --- The paper ---
-* Basic idea
+
+* Introduction
+  - Neural networks are a sequence of layers of the form $f(Ax+b)$ where $A$ (a matrix) and $b$ are weights, $x$ is the input.
+  - We are looking for "meaningful" and/or efficient ways to represent these layer.
+  - Compression may lead to better performance.
+  - Compression may benefit from a better understanding of layers.
+  - We achieved some level of compression.
+  - We have achieved a considerable amount of insight.
+  - We claim this, based on the fact that our compression improves accuracy of the neural network.
+  - We demonstrate this on the pretrained neural networks available for Keras.
+* The proposed compression
+  - Mathematical description of the S shape.
+  - Plots of the S shapes.
+  - Stage 1 of compression: Averaging the S shapes.
+  - Stage 2 of compression: sparsifying (setting <epsilon values to zero).
+  - Stage 3 (in progress): quantization.
+  - Normalization
+  - Restoration after compression.
   Let $\mathbf{W} \in \mathbb{R}^{m \times n}$ be the weight matrix of a dense layer in a neural network.  
   Let $w_{i,:}$ the \(i\)-th row, and $w_{:,j}$ the \(j\)-th column and $w_{i,j}$ the value in the \(i\)-th row and \(j\)-th column of $\mathbf{W}$.  
   In this case $m$ is the size of the input, and $n$ is the size of the output.
-* Assumption 
-  Our assumption is that, $\exists \mathcal{S}:\mathbb{N} \to \mathbb{R}$ and
-  $\exists{\epsilon} > 0$ so that $\forall i \in \{1, \ldots, m\}$
+  
+  Our assumption is that, $\exists \mathcal{S}:\mathbb{N} \to \mathbb{R}$ and $\exists{\epsilon} > 0$ so that $\forall i \in \{1, \ldots, m\}$
   - $\exists \alpha_i \in \mathbb{R}^{+}$
   - $\exists \beta_i \in \mathbb{R}$
   - $\exists \pi_i: \{1, \ldots, n\} \to \{1, \ldots, n\}$ permutation
@@ -66,15 +77,18 @@
 
   The three components in the enumeration above can be summarised as a single transformation of a row in a matrix: $f_i(v) = \alpha_i \cdot (v \circ \pi_i) + \beta_i$ (if we consider the vector $v$ as a function with a $\mathbb{N} \to \mathbb{N}$ signature), or simply $f_i(v_j) = \alpha_i v_{\pi_i(j)} + \beta_i$.
    
-  From this, it is clear that $f_i$ is characterised by a the triplet
-  $(\pi_i, \alpha_i, \beta_i)$, where the permutation $\pi_i$ takes
-  the most space (but probably less then the original row $w_{i,:}$).
-  Since $f_i$ is a composition of a permutation and a linear
-  transformation, it is also invertable, that is $\exists f_i^{-1}$.
+  From this, it is clear that $f_i$ is characterised by a the triplet $(\pi_i, \alpha_i, \beta_i)$, where the permutation $\pi_i$ takes the most space (but probably less then the original row $w_{i,:}$).
+  Since $f_i$ is a composition of a permutation and a linear transformation, it is also invertable, that is $\exists f_i^{-1}$.
 
-  Our idea is to check the performance of the DNN by using
-  $f_i^{-1}(\mathcal{S}) = \alpha_i^{-1}(\mathcal{S} \circ
-  \pi_i^{-1} - \beta_i)$ instead of $w_{i,:}$, that is substitute
-  $w_{i,j}$ with $f_i^{-1}(\mathcal{S}_j) =
-  \frac{\mathcal{S}_{\pi_i^{-1}(j)} - \beta_i}{\alpha_i}$ in the hope
-  of efficient compression of weights.
+  Our idea is to check the performance of the DNN by using $f_i^{-1}(\mathcal{S}) = \alpha_i^{-1}(\mathcal{S} \circ \pi_i^{-1} - \beta_i)$ instead of $w_{i,:}$, that is substitute $w_{i,j}$ with $f_i^{-1}(\mathcal{S}_j) = \frac{\mathcal{S}_{\pi_i^{-1}(j)} - \beta_i}{\alpha_i}$ in the hope of efficient compression of weights.
+* Results
+  - Results of accuracy
+  - Plots of accuracy as a function of epsilon
+* Conclusion
+  - Interpretation - each neuron is good at pushing something, pulling something else, and is irrelevant for most of the things
+* Needs to find its place
+  - Efficiency of compression
+    - Dense layers only
+    - Size of the 
+    - 32 vs 16 bit floats
+  - Connection between "good" models (Resnet) vs "bad" models (vgg)
