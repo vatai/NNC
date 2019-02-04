@@ -14,6 +14,7 @@ import numpy as np
 import telegram
 from tensorflow import set_random_seed
 import keras.applications as Kapp
+from keras.utils import multi_gpu_model
 from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
 from keras.layers.core import Dense
 from sacred import Experiment
@@ -155,6 +156,11 @@ def proc_model(model_name, proc_args=None):
                    'target_size': 331})}
     model_cls, preproc_args = model_dic[model_name]
     model = model_cls()
+    try:
+        model = multi_gpu_model(model)
+    except ValueError as exception:
+        print(exception)
+
     layers = get_same_type_layers(model.layers)
     if not layers:
         # If the model has no dense layers, skip it by returning None.
