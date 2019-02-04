@@ -6,7 +6,7 @@ if [ -e /usr/local/anaconda3/lib ]; then
     srun=srun
 fi
 
-for exp in $(seq 3 6); do
+for exp in $(seq 19 -1 15); do
     for norm in True False; do
         if [[ $norm == True ]]; then
             name=norm
