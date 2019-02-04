@@ -12,15 +12,20 @@ import os.path
 from os.path import expanduser
 import numpy as np
 import telegram
+
+import tensorflow as tf
 from tensorflow import set_random_seed
+
 import keras.applications as Kapp
 from keras.utils import multi_gpu_model
 from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
 from keras.layers.core import Dense
+
 from sacred import Experiment
 # from sacred.utils import apply_backspaces_and_linefeeds # for progressbars
 from sacred.observers import FileStorageObserver
 from sacred.observers import TelegramObserver
+
 from nnclib.generators import CropGenerator
 from nnclib.utils import get_results_dir
 
@@ -86,11 +91,12 @@ def proc_dense_layer(layer, norm=False, epsilon=0):
 @EX.capture
 def evaluate(model, preproc_args, compile_args, gen_args, eval_args):
     """Evaluate model."""
-    model.compile(**compile_args)
-    gen_args.update(preproc_args)
-    generator = CropGenerator(**gen_args)
-    result = model.evaluate_generator(generator, **eval_args)
-    return result
+    with tf.device('/gpu:0'):
+        model.compile(**compile_args)
+        gen_args.update(preproc_args)
+        generator = CropGenerator(**gen_args)
+        result = model.evaluate_generator(generator, **eval_args)
+        return result
 
 
 @EX.capture
