@@ -5,14 +5,13 @@ This program generates shell scripts to execute multiple experiments.
 norms = [True, False]
 exps = range(10, 12)
 
-
 python_cmd = "python"
 pyfile = "./src/compare_with_compression.py"
 
 sbatch_str = """#!/bin/sh
-#SBATCH -N2 
+#SBATCH -N2
 #SBATCH --partition=v
-srun bash -c 'singularity exec --nv ./singularity/stf-oldv.sif {} {} with {}'
+srun sh -c 'singularity exec --nv ./singularity/stf-oldv.sif {} {} with {}'
 """
 
 for norm in norms:
