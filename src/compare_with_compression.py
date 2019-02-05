@@ -91,12 +91,11 @@ def proc_dense_layer(layer, norm=False, epsilon=0):
 @EX.capture
 def evaluate(model, preproc_args, compile_args, gen_args, eval_args):
     """Evaluate model."""
-    with tf.device('/gpu:0'):
-        model.compile(**compile_args)
-        gen_args.update(preproc_args)
-        generator = CropGenerator(**gen_args)
-        result = model.evaluate_generator(generator, **eval_args)
-        return result
+    model.compile(**compile_args)
+    gen_args.update(preproc_args)
+    generator = CropGenerator(**gen_args)
+    result = model.evaluate_generator(generator, **eval_args)
+    return result
 
 
 @EX.capture
@@ -162,10 +161,10 @@ def proc_model(model_name, proc_args=None):
                    'target_size': 331})}
     model_cls, preproc_args = model_dic[model_name]
     model = model_cls()
-    try:
-        model = multi_gpu_model(model)
-    except ValueError as exception:
-        print(exception)
+    # try:
+    #     model = multi_gpu_model(model)
+    # except ValueError as exception:
+    #     print(exception)
 
     layers = get_same_type_layers(model.layers)
     if not layers:
