@@ -55,7 +55,8 @@ def config():
                 'fast_mode': False}
     eval_args = {'max_queue_size': 10,
                  'workers': 1,
-                 'use_multiprocessing': False}
+                 'use_multiprocessing': False,
+                 'verbose': True}
     # For the no processing (original/gold results), set proc_args={}
     proc_args = {'norm': False,
                  'epsilon': 0,
