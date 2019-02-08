@@ -58,7 +58,8 @@ def config():
                  'use_multiprocessing': False}
     # For the no processing (original/gold results), set proc_args={}
     proc_args = {'norm': False,
-                 'epsilon': 0}
+                 'epsilon': 0,
+                 'quantization': True}
     seed = 42
 
 
@@ -67,7 +68,7 @@ def get_same_type_layers(layers, ltype=Dense):
     return list(filter(lambda x: isinstance(x, ltype), layers))
 
 
-def proc_dense_layer(layer, norm=False, epsilon=0):
+def proc_dense_layer(layer, norm=False, epsilon=0, quantization=False):
     """Process a single layer if it is Dense (or other given type)."""
     assert isinstance(layer, Dense)
     dense, bias = layer.get_weights()
@@ -85,6 +86,8 @@ def proc_dense_layer(layer, norm=False, epsilon=0):
         compressed_dense[cond] = 0
     if norm:
         compressed_dense *= norms_dense[:, np.newaxis]
+    if quantization:
+        compressed_dense = compressed_dense.astype(np.float16)
     return compressed_dense, bias
 
 
