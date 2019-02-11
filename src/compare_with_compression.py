@@ -60,7 +60,7 @@ def config():
     # For the no processing (original/gold results), set proc_args={}
     proc_args = {'norm': False,
                  'epsilon': 0,
-                 'quantization': True}
+                 'quantization': False}
     seed = 42
 
 
