@@ -2,62 +2,62 @@
 Generate an org file with containing with the right needed images.
 """
 
-import os
 import json
-from pprint import pprint
 import matplotlib.pyplot as plt
+import nnclib.utils
 
+def compile_results():
+    """
+    This function open processes the results and compiles them into a
+    single dictionary.
 
-def make_gold_fn(base, *args, **kwargs):
-    fname = "gold.json"
-    return os.path.join(base, fname)
+    Three things are read:
 
+        - one `gold.json` file
 
-def get_json_gold(*args, **kwargs):
-    return json.load(open(make_gold_fn(*args, **kwargs)))
+        - the results files
 
+        - the weights files
+    """
 
-def make_result_fn(base, norm, exp):
-    fname = "{}-0{}.json".format(norm, exp)
-    return os.path.join(base, fname)
-
-
-def get_json_result(*args, **kwargs):
-    return json.load(open(make_result_fn(*args, **kwargs)))
-
-
-def make_weight_fn(base, norm, exp):
-    fname = "weight_{}_{}.json".format(norm, 10**-exp)
-    return os.path.join(base, fname)
-
-
-def get_json_weight(*args, **kwargs):
-    output = json.load(open(make_weight_fn(*args, **kwargs)))
-    del output['mobilenet']
-    return output
-
-
-def compile_results(base, exps=range(1, 6)):
-    gold = get_json_gold(base)
+    exps = nnclib.utils.get_exps()
     all_results = {}
+
+    # read the gold file
+    gold = json.load(open("gold.json"))
+
     for model in gold.keys():
         all_results[model] = {}
         all_results[model]['gold'] = gold[model]
         all_results[model]['weights'] = {}
         all_results[model]['results'] = {}
+
         for norm in ["norm", "nonorm"]:
             all_results[model]['weights'][norm] = {}
             all_results[model]['results'][norm] = {}
+
             for exp in exps:
-                results = get_json_result(base, norm, exp)
+
+                # read the results file
+                # path pattern from the runscript... not the best approach
+                results_path = "{}-0{}.json".format(norm, exp)
+                results = json.load(open(results_path, 'r'))
                 all_results[model]['results'][norm][exp] = results[model]
-                weights = get_json_weight(base, norm, exp)
+
+                # read the weights file
+                # path pattern from get_dense_weight_size.py
+                weights_path = "weight_{}_{:02}.json".format(norm, 10**-exp)
+                weights = json.load(open(weights_path, 'r'))
                 all_results[model]['weights'][norm][exp] = weights[model]
+
     return all_results
 
 
 def fig_model(model, name):
-    fig, ax = plt.subplots(1,2)
+    """
+    Generates a figure with for the normalised and not normalised.
+    """
+    fig, ax = plt.subplots(1, 2)
     title = ["top1", "top5"]
     # 2 subfigs, top1 and top5 accuracy
     for idx in range(2):
@@ -112,11 +112,12 @@ def get_table(model, branch):
 
 
 def proc_all_models():
-    """The main function."""
-    # base = os.path.expanduser("~/code/NNC/report/20190121/")
+    """
+    The main function which processes all the models.
+    """
 
     # Step1: build `results` dictionary.
-    results = compile_results(base)
+    results = compile_results()
 
     # Step2: generate figures.
     for name, model in results.items():
