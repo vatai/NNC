@@ -18,7 +18,7 @@ def get_json_gold(*args, **kwargs):
 
 
 def make_result_fn(base, norm, exp):
-    fname = "{}-{:02}.json".format(norm, exp)
+    fname = "{}-0{}.json".format(norm, exp)
     return os.path.join(base, fname)
 
 
@@ -113,15 +113,19 @@ def get_table(model, branch):
 
 def proc_all_models():
     """The main function."""
-    base = os.path.expanduser("~/code/NNC/report/20190121/")
+    # base = os.path.expanduser("~/code/NNC/report/20190121/")
+
+    # Step1: build `results` dictionary.
     results = compile_results(base)
+
+    # Step2: generate figures.
     for name, model in results.items():
         fig = fig_model(model, name)
         img_name = name + ".png"
         fig.savefig(img_name)
         plt.close(fig)
 
-
+    # Step3: generate report.
     report_name = "report.org"
     with open(report_name, 'w') as report_file:
         org_header = """#+LATEX_HEADER: \\usepackage[margin=5mm]{geometry}
