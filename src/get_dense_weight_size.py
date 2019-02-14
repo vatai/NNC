@@ -11,18 +11,21 @@ import keras.applications as Kapp
 from keras.layers.core import Dense
 from sacred import Experiment
 from sacred.observers import FileStorageObserver
+from sacred.observers import TelegramObserver
 
 from nnclib.utils import get_results_dir
 
 EX = Experiment()
 EX.observers.append(FileStorageObserver.create(get_results_dir(__file__)))
+EX.observers.append(TelegramObserver.from_config('telegram.json'))
 
 
 @EX.config
 def config():
     model_names = ["xception", "vgg16", "vgg19", "resnet50",
                    "inceptionv3", "inceptionresnetv2", "mobilenet",
-                   "mobilenetv2", "densenet121", "densenet169",
+                   # "mobilenetv2", 
+                   "densenet121", "densenet169",
                    "densenet201", "nasnetmobile", "nasnetlarge"]
     proc_args = {'norm': False,
                  'epsilon': 0}
@@ -77,8 +80,8 @@ def proc_model(name, proc_args=None):
                  Kapp.inception_resnet_v2.InceptionResNetV2,
                  "mobilenet":
                  Kapp.mobilenet.MobileNet,
-                 "mobilenetv2":
-                 Kapp.mobilenet_v2.MobileNetV2,
+                 # "mobilenetv2":
+                 # Kapp.mobilenet_v2.MobileNetV2,
                  "densenet121":
                  Kapp.densenet.DenseNet121,
                  "densenet169":
