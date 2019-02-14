@@ -43,7 +43,8 @@ def config():
     json_name = 'results'
     model_names = ["xception", "vgg16", "vgg19", "resnet50",
                    "inceptionv3", "inceptionresnetv2", "mobilenet",
-                   "mobilenetv2", "densenet121", "densenet169",
+                   # "mobilenetv2", 
+		   "densenet121", "densenet169",
                    "densenet201", "nasnetmobile", "nasnetlarge"]
     compile_args = {'optimizer': 'RMSprop',
                     'loss': 'categorical_crossentropy',
@@ -54,8 +55,8 @@ def config():
                 'batch_size': 32,
                 'fast_mode': False}
     eval_args = {'max_queue_size': 10,
-                 'workers': 1,
-                 'use_multiprocessing': False,
+                 'workers': 4,
+                 'use_multiprocessing': True,
                  'verbose': True}
     # For the no processing (original/gold results), set proc_args={}
     proc_args = {'norm': False,
@@ -139,10 +140,10 @@ def proc_model(model_name, proc_args=None):
                  (Kapp.mobilenet.MobileNet,
                   {'preproc': Kapp.mobilenet.preprocess_input,
                    'target_size': 224}),
-                 "mobilenetv2":
-                 (Kapp.mobilenet_v2.MobileNetV2,
-                  {'preproc': Kapp.mobilenet_v2.preprocess_input,
-                   'target_size': 224}),
+                 # "mobilenetv2":
+                 # (Kapp.mobilenet_v2.MobileNetV2,
+                 #  {'preproc': Kapp.mobilenet_v2.preprocess_input,
+                 #   'target_size': 224}),
                  "densenet121":
                  (Kapp.densenet.DenseNet121,
                   {'preproc': Kapp.densenet.preprocess_input,
