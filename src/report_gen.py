@@ -24,7 +24,7 @@ def compile_results():
     all_results = {}
 
     # read the gold file
-    gold = json.load(open("gold.json"))
+    gold = json.load(open("../gold.json"))
 
     for model in gold.keys():
         all_results[model] = {}
