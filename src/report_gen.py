@@ -20,12 +20,12 @@ def compile_results():
         - the weights files
     """
 
-    exps = nnclib.utils.get_exps()
+    epsilons = nnclib.utils.get_epsilons()
     all_results = {}
 
     # read the gold file
     gold = json.load(open("../gold.json"))
-
+    del gold['mobilenetv2']
     for model in gold.keys():
         all_results[model] = {}
         all_results[model]['gold'] = gold[model]
@@ -36,19 +36,19 @@ def compile_results():
             all_results[model]['weights'][norm] = {}
             all_results[model]['results'][norm] = {}
 
-            for exp in exps:
+            for eps in epsilons:
 
                 # read the results file
                 # path pattern from the runscript... not the best approach
-                results_path = "{}-0{}.json".format(norm, exp)
+                results_path = "{}-{}.json".format(norm, eps)
                 results = json.load(open(results_path, 'r'))
-                all_results[model]['results'][norm][exp] = results[model]
+                all_results[model]['results'][norm][eps] = results[model]
 
                 # read the weights file
                 # path pattern from get_dense_weight_size.py
-                weights_path = "weight_{}_{:02}.json".format(norm, 10**-exp)
+                weights_path = "weight_{}_{:02}.json".format(norm, eps)
                 weights = json.load(open(weights_path, 'r'))
-                all_results[model]['weights'][norm][exp] = weights[model]
+                all_results[model]['weights'][norm][eps] = weights[model]
 
     return all_results
 
@@ -61,7 +61,7 @@ def fig_model(model, name):
     title = ["top1", "top5"]
     # 2 subfigs, top1 and top5 accuracy
     for idx in range(2):
-        ax[idx].bar(0, model['gold'][idx + 1])
+        ax[idx].bar(0, model['gold'][idx + 1], 0.01)
         # Start with the gold
         leg_clr = []
         leg_txt = []
@@ -69,8 +69,8 @@ def fig_model(model, name):
         for norm in model['results'].keys():
             x_vals = []
             y_vals = []
-            for exp, val in model['results'][norm].items():
-                x_vals.append(exp)
+            for eps, val in model['results'][norm].items():
+                x_vals.append(eps)
                 y_vals.append(val[idx+1])
             plot = ax[idx].plot(x_vals, y_vals)
             leg_clr.append(plot[0])
@@ -78,11 +78,11 @@ def fig_model(model, name):
 
             x_vals = []
             y_vals = []
-            for exp, val in model['weights'][norm].items():
+            for eps, val in model['weights'][norm].items():
                 org, comp = val[0][0][1], val[0][1][1]
                 # print(val[0], org, comp, comp / org, exp)
                 y_val = comp / org
-                x_vals.append(exp)
+                x_vals.append(eps)
                 y_vals.append(y_val)
             plot = ax[idx].plot(x_vals, y_vals, '--')
             leg_clr.append(plot[0])
@@ -103,8 +103,8 @@ def get_table(model, branch):
         line += " |\n"
         table.append(line)
     for norm in results.keys():
-        for exp, val in results[norm].items():
-            line = "| {} | $10^{{-{}}}$ | ".format(norm, exp)
+        for eps, val in results[norm].items():
+            line = "| {} | ${}$ | ".format(norm, eps)
             line += " | ".join(map(str, val))
             line += " |\n"
             table.append(line)

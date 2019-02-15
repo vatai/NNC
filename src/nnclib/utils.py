@@ -16,7 +16,7 @@ def get_results_dir(file, base="."):
     return os.path.join(base, results_dir)
 
 
-def get_exps(base=".", sort=True):
+def get_epsilons(base=".", sort=True):
     """
     Returns an iterable, based on the files in the base directory
     containing the exponents.
@@ -29,6 +29,6 @@ def get_exps(base=".", sort=True):
         raise UserWarning
 
     # This should be basically returned
-    exps = map(lambda t: int(t[5:-5]), files)
-    if sort: exps = sorted(exps)
-    return exps
+    epsilons = map(lambda t: float(t[5:-5]), files)
+    if sort: epsilons = sorted(epsilons)
+    return epsilons
