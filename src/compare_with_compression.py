@@ -40,7 +40,6 @@ EX.observers.append(TelegramObserver.from_config('telegram.json'))
 def config():
     """Config function for the experiment."""
     # pylint: disable=unused-variable
-    json_name = 'results'
     model_names = ["xception", "vgg16", "vgg19", "resnet50",
                    "inceptionv3", "inceptionresnetv2", "mobilenet",
                    # "mobilenetv2", 
@@ -61,6 +60,7 @@ def config():
     # For the no processing (original/gold results), set proc_args={}
     proc_args = {'norm': False,
                  'epsilon': 0,
+                 'smoothing': False,
                  'quantization': False}
     seed = 42
 
@@ -70,27 +70,29 @@ def get_same_type_layers(layers, ltype=Dense):
     return list(filter(lambda x: isinstance(x, ltype), layers))
 
 
-def proc_dense_layer(layer, norm=False, epsilon=0, quantization=False):
+def proc_dense_layer(layer, norm, epsilon, quantization, smoothing):
     """Process a single layer if it is Dense (or other given type)."""
     assert isinstance(layer, Dense)
     dense, bias = layer.get_weights()
-    args = np.argsort(dense, axis=1)
-    out = np.take_along_axis(dense, args, axis=1)
-    norms_dense = np.linalg.norm(dense, axis=1)
     if norm:
-        out /= norms_dense[:, np.newaxis]
-    mean = out.mean(axis=0)
-    compressed_dense = np.take_along_axis(mean[np.newaxis, :],
-                                          np.argsort(args, axis=1),
-                                          axis=1)
+        norms = np.linalg.norm(dense, axis=1)
+        dense /= norms[:, np.newaxis]
+    if smoothing:
+        indices = np.argsort(dense, axis=1)
+        dense = np.take_along_axis(dense, indices, axis=1)
+        mean = dense.mean(axis=0)
+        unsort_indices = np.argsort(indices, axis=1)
+        dense = np.take_along_axis(mean[np.newaxis, :],
+                                   unsort_indices,
+                                   axis=1)
     if epsilon != 0:
-        cond = np.abs(compressed_dense) < epsilon
-        compressed_dense[cond] = 0
+        cond = np.abs(dense) < epsilon
+        dense[cond] = 0
     if norm:
-        compressed_dense *= norms_dense[:, np.newaxis]
+        dense *= norms[:, np.newaxis]
     if quantization:
-        compressed_dense = compressed_dense.astype(np.float16)
-    return compressed_dense, bias
+        dense = dense.astype(np.float16)
+    return dense, bias
 
 
 @EX.capture
@@ -186,12 +188,17 @@ def proc_model(model_name, proc_args=None):
 
 
 @EX.automain
-def proc_all_models(model_names, json_name, _seed):
+def proc_all_models(model_names, proc_args, _seed):
     """Process all models."""
 
     set_random_seed(_seed)
     basedir = EX.observers[0].basedir
-    result_file = os.path.join(basedir, "{}.json".format(json_name))
+    json_name = "eval_norm{}_quant{}_smooth{}_eps{}.json"
+    json_name = json_name.format(int(proc_args.norm),
+                                 int(proc_args.quantization),
+                                 int(proc_args.smoothing),
+                                 proc_args.epsilon)
+    result_file = os.path.join(basedir, json_name)
     aggregation = {}  # aggregate all results in a dictionary
     for index, name in enumerate(model_names):
         result = proc_model(name)
