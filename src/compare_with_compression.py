@@ -58,10 +58,10 @@ def config():
                  'use_multiprocessing': True,
                  'verbose': True}
     # For the no processing (original/gold results), set proc_args={}
-    proc_args = {'norm': False,
+    proc_args = {'norm': 0,
                  'epsilon': 0,
-                 'smoothing': False,
-                 'quantization': False}
+                 'smoothing': 0,
+                 'quantization': 0}
     seed = 42
 
 
@@ -188,17 +188,14 @@ def proc_model(model_name, proc_args=None):
 
 
 @EX.automain
-def proc_all_models(model_names, proc_args, _seed):
+def proc_all_models(_seed, model_names, proc_args):
     """Process all models."""
 
     set_random_seed(_seed)
     basedir = EX.observers[0].basedir
-    json_name = "eval_norm{}_quant{}_smooth{}_eps{}.json"
-    json_name = json_name.format(int(proc_args.norm),
-                                 int(proc_args.quantization),
-                                 int(proc_args.smoothing),
-                                 proc_args.epsilon)
-    result_file = os.path.join(basedir, json_name)
+    json_name = "eval_norm{norm}_quant{quantization}_" \
+        "smooth{smoothing}_eps{epsilon}.json"
+    result_file = os.path.join(basedir, json_name.format(**proc_args))
     aggregation = {}  # aggregate all results in a dictionary
     for index, name in enumerate(model_names):
         result = proc_model(name)
