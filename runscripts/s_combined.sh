@@ -8,7 +8,7 @@
 for exp in 4 5; do
   norm=$SLURM_ARRAY_TASK_ID
   srun sh -c "singularity exec --nv ./singularity/tf-11-mod \
-    python ./src/compare_with_compression.py with \
+    python ./src/combined.py with \
       gen_args.batch_size=64 \
       eval_args.max_queue_size=14 \
       eval_args.workers=14 \

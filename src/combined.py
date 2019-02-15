@@ -1,11 +1,10 @@
 """
 A program to compare the acurracy of Keras models with and without
 compression.
-"""
 
-# TODO: measure sparsification see ./get_dense_weight_size.py
-# TODO: plot results ./report_plot.py
-# TODO: Closses difference
+This combines the compare_with_compression.py and
+get_dense_weight_size.py.  It measures accuracy and compression.
+"""
 
 import json
 import os.path
@@ -92,7 +91,9 @@ def proc_dense_layer(layer, norm, epsilon, quantization, smoothing):
         dense *= norms[:, np.newaxis]
     if quantization:
         dense = dense.astype(np.float16)
-    return dense, bias
+    nzs = np.count_nonzero(dense, axis=1)
+    nzcount = (nzs.shape[0], int(nzs[0]))
+    return (dense, bias), nzcount
 
 
 @EX.capture
@@ -180,11 +181,13 @@ def proc_model(model_name, proc_args=None):
     if not proc_args:
         # if proc_args == None or {} then just evaluate.
         return evaluate(model, preproc_args)
+    nzcounts = []
     for layer in layers:
-        new_layer = proc_dense_layer(layer, **proc_args)
+        new_layer, nzcount = proc_dense_layer(layer, **proc_args)
         layer.set_weights(new_layer)
+        nzcounts.append(nzcount)
     result = evaluate(model, preproc_args)
-    return result
+    return result, nzcounts
 
 
 @EX.automain
@@ -196,14 +199,20 @@ def proc_all_models(_seed, model_names, proc_args):
     json_name = "eval_norm{norm}_quant{quantization}_" \
         "smooth{smoothing}_eps{epsilon}.json"
     result_file = os.path.join(basedir, json_name.format(**proc_args))
+    json_name = "weight_norm{norm}_quant{quantization}_" \
+        "smooth{smoothing}_eps{epsilon}.json"
+    weights_file = os.path.join(basedir, json_name.format(**proc_args))
     aggregation = {}  # aggregate all results in a dictionary
+    weights = {}
     for index, name in enumerate(model_names):
-        result = proc_model(name)
+        result, nzcounts = proc_model(name)
         # If proc model returned none, then it did nothing so skip.
         if result:
             print(">>>>>> {} - {}/{} Done.".format(name, index + 1,
                                                    len(model_names)))
             print(">>>>>> {} result = {}".format(name, result))
             aggregation[name] = result
+            weights[name] = nzcounts
         json.dump(aggregation, open(result_file, "w"))
+        json.dump(weights, open(weights_file, "w"))
     return aggregation
