@@ -1,4 +1,8 @@
 slurm-*.out
+report/*/*.png
+report/*/*.tex
+report/*/*.org
+report/*/*.pdf
 *~
 results
 telegram.json
