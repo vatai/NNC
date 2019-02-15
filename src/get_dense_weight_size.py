@@ -28,7 +28,9 @@ def config():
                    "densenet121", "densenet169",
                    "densenet201", "nasnetmobile", "nasnetlarge"]
     proc_args = {'norm': False,
-                 'epsilon': 0}
+                 'epsilon': 0,
+                 'smoothing': 0,
+                 'quantization': 0}
     seed = 42
 
 
@@ -37,7 +39,7 @@ def get_same_type_layers(layers, ltype=Dense):
     return list(filter(lambda x: isinstance(x, ltype), layers))
 
 
-def proc_dense_layer(layer, norm=False, epsilon=0):
+def proc_dense_layer(layer, norm, epsilon, quantization, smoothing):
     """
     Return the number of non-zero elements in a layer after
     processing.
@@ -45,19 +47,26 @@ def proc_dense_layer(layer, norm=False, epsilon=0):
     """
     assert isinstance(layer, Dense)
     dense, bias = layer.get_weights()
-    args = np.argsort(dense, axis=1)
-    out = np.take_along_axis(dense, args, axis=1)
-    norms_dense = np.linalg.norm(dense, axis=1)
     if norm:
-        out /= norms_dense[:, np.newaxis]
-    mean = out.mean(axis=0)
-    compressed_dense = np.take_along_axis(mean[np.newaxis, :],
-                                          np.argsort(args, axis=1),
-                                          axis=1)
-    cond = np.abs(compressed_dense) < epsilon
-    compressed_dense[cond] = 0
-    nzs = np.count_nonzero(compressed_dense, axis=1)
-    assert np.all(nzs == nzs[0])
+        norms = np.linalg.norm(dense, axis=1)
+        dense /= norms[:, np.newaxis]
+    if smoothing:
+        indices = np.argsort(dense, axis=1)
+        dense = np.take_along_axis(dense, indices, axis=1)
+        mean = dense.mean(axis=0)
+        unsort_indices = np.argsort(indices, axis=1)
+        dense = np.take_along_axis(mean[np.newaxis, :],
+                                   unsort_indices,
+                                   axis=1)
+    if epsilon != 0:
+        cond = np.abs(dense) < epsilon
+        dense[cond] = 0
+    if norm:
+        dense *= norms[:, np.newaxis]
+    if quantization:
+        dense = dense.astype(np.float16)
+    
+    nzs = np.count_nonzero(dense, axis=1)
     return (nzs.shape[0], int(nzs[0]))
 
 
@@ -109,13 +118,13 @@ def proc_model(name, proc_args=None):
 
 
 @EX.automain
-def proc_all_models(model_names, proc_args, _seed):
+def proc_all_models(_seed, model_names, proc_args):
     """Process all models: print and store results."""
     set_random_seed(_seed)
     basedir = EX.observers[0].basedir
-    norm = "" if proc_args['norm'] else "no"
-    filename = "weight_{}norm_{:02}.json".format(norm, proc_args['epsilon'])
-    result_file = os.path.join(basedir, filename)
+    json_name = "weight_norm{norm}_quant{quantization}_" \
+        "smooth{smoothing}_eps{epsilon}.json"
+    result_file = os.path.join(basedir, json_name.format(**proc_args))
     result = {}
     for index, name in enumerate(model_names):
         print(">>>>>> {} - {}/{}".format(name, index + 1, len(model_names)))
