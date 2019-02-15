@@ -23,12 +23,13 @@ def get_epsilons(base=".", sort=True):
     """
     from glob import glob
 
-    files = glob('norm-*.json')
+    files = glob('eval_*.json')
     if not files:
-        print("No norm-*.json files.")
+        print("No eval_*.json files.")
         raise UserWarning
 
     # This should be basically returned
-    epsilons = map(lambda t: float(t[5:-5]), files)
-    if sort: epsilons = sorted(epsilons)
+    epsilons = map(lambda t: float(t[t.find('eps') + 3: -5]), files)
+    if sort:
+        epsilons = sorted(epsilons)
     return epsilons

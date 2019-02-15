@@ -32,7 +32,7 @@ def compile_results():
         all_results[model]['weights'] = {}
         all_results[model]['results'] = {}
 
-        for norm in ["norm", "nonorm"]:
+        for inorm, norm in enumerate(["nonorm", "norm"]):
             all_results[model]['weights'][norm] = {}
             all_results[model]['results'][norm] = {}
 
@@ -40,13 +40,15 @@ def compile_results():
 
                 # read the results file
                 # path pattern from the runscript... not the best approach
-                results_path = "{}-{}.json".format(norm, eps)
+                results_path = "eval_norm{}_quant0_smooth0_eps{}.json"
+                results_path = results_path.format(inorm, eps)
                 results = json.load(open(results_path, 'r'))
                 all_results[model]['results'][norm][eps] = results[model]
 
                 # read the weights file
                 # path pattern from get_dense_weight_size.py
-                weights_path = "weight_{}_{:02}.json".format(norm, eps)
+                weights_path = "weight_norm{}_quant0_smooth0_eps{}.json"
+                weights_path = weights_path.format(inorm, eps)
                 weights = json.load(open(weights_path, 'r'))
                 all_results[model]['weights'][norm][eps] = weights[model]
 
