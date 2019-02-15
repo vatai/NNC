@@ -205,14 +205,14 @@ def proc_all_models(_seed, model_names, proc_args):
     aggregation = {}  # aggregate all results in a dictionary
     weights = {}
     for index, name in enumerate(model_names):
-        result, nzcounts = proc_model(name)
+        result = proc_model(name)
         # If proc model returned none, then it did nothing so skip.
         if result:
             print(">>>>>> {} - {}/{} Done.".format(name, index + 1,
                                                    len(model_names)))
-            print(">>>>>> {} result = {}".format(name, result))
-            aggregation[name] = result
-            weights[name] = nzcounts
+            print(">>>>>> {} result = {}".format(name, result[0]))
+            aggregation[name] = result[0]
+            weights[name] = result[1]
         json.dump(aggregation, open(result_file, "w"))
         json.dump(weights, open(weights_file, "w"))
     return aggregation
