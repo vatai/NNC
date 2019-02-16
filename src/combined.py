@@ -39,11 +39,21 @@ EX.observers.append(TelegramObserver.from_config('telegram.json'))
 def config():
     """Config function for the experiment."""
     # pylint: disable=unused-variable
-    model_names = ["xception", "vgg16", "vgg19", "resnet50",
-                   "inceptionv3", "inceptionresnetv2", "mobilenet",
-                   # "mobilenetv2", 
-		   "densenet121", "densenet169",
-                   "densenet201", "nasnetmobile", "nasnetlarge"]
+    model_names = [
+        "xception",  # 11
+        "vgg16",     # 9
+        "vgg19",     # 10
+        "resnet50",  # 8
+        "inceptionv3",        # 4
+        "inceptionresnetv2",  # 5
+        # "mobilenet",
+        # "mobilenetv2",
+                "densenet121",        # 1
+        "densenet169",        # 2
+        "densenet201",        # 3
+        "nasnetmobile",       # 7
+        "nasnetlarge"         # 6
+    ]
     compile_args = {'optimizer': 'RMSprop',
                     'loss': 'categorical_crossentropy',
                     'metrics': [categorical_accuracy,
@@ -196,6 +206,7 @@ def proc_all_models(_seed, model_names, proc_args):
 
     set_random_seed(_seed)
     basedir = EX.observers[0].basedir
+    print("Basedir {}\n".format(basedir))
     json_name = "eval_norm{norm}_quant{quantization}_" \
         "smooth{smoothing}_eps{epsilon}.json"
     result_file = os.path.join(basedir, json_name.format(**proc_args))
