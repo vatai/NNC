@@ -49,7 +49,6 @@
 ** Related work (1-2 pages)
 ** Conclusion and future work (0.5 page)
 * COMMENT --- The paper ---
-
 * Introduction
   - Neural networks are a sequence of layers of the form $f(Ax+b)$ where $A$ (a matrix) and $b$ are weights, $x$ is the input.
   - We are looking for "meaningful" and/or efficient ways to represent these layer.
@@ -95,3 +94,5 @@
     - Size of the 
     - 32 vs 16 bit floats
   - Connection between "good" models (Resnet) vs "bad" models (vgg)
+  - Curve descriptions, epsilon, min max
+
