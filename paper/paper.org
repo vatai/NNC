@@ -1,15 +1,18 @@
 #+OPTIONS: ':t toc:nil
 #+LATEX_HEADER: \newcommand{\abs}[1]{\lvert #1 \rvert}
-#+TITLE: Compression of dense layers in neural networks
+#+TITLE: Compression with insight into the layers of deep neural networks
 #+AUTHOR: Reiji SUDA, Emil VATAI
 
 #+begin_abstract
-  We present variations on a possible compression method of dense layers in neural networks, with the goal of enabling a more efficient use of extremely large dense layers in large scale applications. 
-  In this paper we present a compression method, which compresses a dense layer to $<50\%$ of the layer's original size stored as 32 bit floats and $<X\%$ originally stored as half-precision floats. 
-  Furthermore, the idea used for compression reveals an interesting pattern in dense layers, which we believe provides valuable insight into the explanation of dense layers.
-  This belief is based on the observation that our compression method kept and sometimes improved the prediction accuracy of neural networks. 
+  In this paper we explore possible compression schemes of deep neural networks based on the distribution of the weights (parameters) within a layers.
+  In the search for an intelligent way to compress deep neural networks, we found an interesting pattern common to dense and convolutional layers.
+  All rows of dense layers, after sorting, conform to a single "S-shaped" curve.
+  Substituting the original weights, with a single (per column) average (of all the sorted rows), and then "unsorting" them to their original position, results in virtually no reduction of accuracy.
+  A after reshaping the weights of convolutional layers into 2D matrices, a similar pattern emerges.
+  This characterisation can be used to compress neural networks and hopefully also provides better insight into them. 
+  We verify this observation for different pretrained models and measure the compression ratio and accuracy of the networks after compression.
 #+end_abstract
-
+   
 * COMMENT To SLACK
   Hola! I hope this is not too strange of a question... how much/often do you have dense layers in your models? To be specific, I am not asking about what percentage of layers are dense layers in your models. I.e. a "usual" image recognition model (vgg, resnet) has (let's say) 100 fancy (conv, rnn) layers and one dense layer at the top, only 1%. But and this is true for 99% percent of image recognition models. I am asking about the 99%, so maybe a better phrasing would be "how many of your projects uses at least one dense layer?"
 * COMMENT Main points
