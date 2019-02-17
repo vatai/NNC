@@ -6,7 +6,10 @@ import json
 import matplotlib.pyplot as plt
 import nnclib.utils
 
-def compile_results():
+AMMEND = json.load(open('../dense_weights.json'))
+
+
+def compile_results(smooth=0):
     """
     This function open processes the results and compiles them into a
     single dictionary.
@@ -40,16 +43,17 @@ def compile_results():
 
                 # read the results file
                 # path pattern from the runscript... not the best approach
-                results_path = "eval_norm{}_quant0_smooth0_eps{}.json"
-                results_path = results_path.format(inorm, eps)
+                results_path = "eval_norm{}_quant0_smooth{}_eps{}.json"
+                results_path = results_path.format(inorm, smooth, eps)
                 results = json.load(open(results_path, 'r'))
                 all_results[model]['results'][norm][eps] = results[model]
 
                 # read the weights file
                 # path pattern from get_dense_weight_size.py
-                weights_path = "weight_norm{}_quant0_smooth0_eps{}.json"
-                weights_path = weights_path.format(inorm, eps)
+                weights_path = "weight_norm{}_quant0_smooth{}_eps{}.json"
+                weights_path = weights_path.format(inorm, smooth, eps)
                 weights = json.load(open(weights_path, 'r'))
+                weights[model] = list(zip(AMMEND[model], weights[model]))
                 all_results[model]['weights'][norm][eps] = weights[model]
 
     return all_results
@@ -135,23 +139,23 @@ def get_table(model, branch):
     return table
 
 
-def proc_all_models():
+def proc_all_models(smooth=0):
     """
     The main function which processes all the models.
     """
 
     # Step1: build `results` dictionary.
-    results = compile_results()
+    results = compile_results(smooth)
 
     # Step2: generate figures.
     for name, model in results.items():
         fig = fig_model(model, name)
-        img_name = name + ".png"
+        img_name = name + "{}.png".format(smooth)
         fig.savefig(img_name)
         plt.close(fig)
 
     # Step3: generate report.
-    report_name = "report.org"
+    report_name = "report{}.org".format(smooth)
     with open(report_name, 'w') as report_file:
         org_header = """
 #+LATEX_CLASS_OPTIONS: [a4paper,9pt]
@@ -161,7 +165,7 @@ def proc_all_models():
 """
         report_file.write(org_header)
         for name, model in results.items():
-            img_name = name + ".png"
+            img_name = name + "{}.png".format(smooth)
             results_table = get_table(model, 'results')
             compression_table = get_table(model, 'weights')
             report_file.write("* {}\n".format(name))
@@ -171,4 +175,5 @@ def proc_all_models():
             report_file.writelines(compression_table)
 
 
-proc_all_models()
+proc_all_models(0)
+proc_all_models(1)
