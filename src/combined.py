@@ -58,85 +58,35 @@ def config():
     seed = 42
 
 
-def proc_layer(layer, norm, epsilon, quantization, dense_smooth, conv_smooth):
+def proc_weights(weights, norm, epsilon, quantization, dense_smooth, conv_smooth):
     """
     Process a single layer.
 
     Applies the following operations:
-    
-    1a. reshape           if smoothing or normalisation
-    2a. normalisation     if smoothing and normalisation
-    3a. sorting           if smoothing
-    3b. smoothing         if smoothing
-    3c. un-sorting        if sorted
-    4. pruning
-    2b. un-normalisation  if normalised
-    1b. un-reshape        if reshaped
-    5. quantisation
-
-    - reshape: for normalisation OR for smoothing
-    - normalisation: for normalisation, for pruning
-    - smooth: for smooth
     """
-    # variables
-    weights = layer.get_weights()
-    smoothing = any(
-        [
-            dense_smooth and isinstance(layer, Dense),
-            conv_smooth and isinstance(layer, Conv2D)
-        ])
+    # II. norm
+    if norm:
+        norms = np.linalg.norm(weights, axis=1)
+        weights /= norms[:, np.newaxis]
 
-    # get_weights() usually returns [weights, bias] if possible we
-    # don't want the bias
-    # I. unpacking
-    unpacked = False
-    if isinstance(weights, list) and len(weights) == 2:
-        weights, rest = weights[0], weights[1:]
-        unpacked = True
-    else:
-        return weights
+    # Pruning (after normalisation).
+    if epsilon > 0:
+        weights[np.abs(weights) < epsilon] = 0
 
-    # II. and III: if normalisation or smoothing, then reshape
-    if norm or smoothing or epsilon > 0:
-        shape = np.shape(weights) # old shape
-        # calculate new shape and reshape weights
-        height = shape[-2]
-        width = shape[-1]
-        for dim in shape[:-2]:
-            width *= dim
-        new_shape = (height, width)
-        weights = np.reshape(weights, new_shape)
-
-        # II. norm
-        if norm:
-            norms = np.linalg.norm(weights, axis=1)
-            weights /= norms[:, np.newaxis]
-
-        # Pruning (after normalisation).
-        if epsilon > 0:
-            weights[np.abs(dense) < epsilon] = 0
-
-        # III. smoothing
-        if smoothing: 
-            sorting = np.argsort(weights, axis=1)
-            weights = np.take_along_axis(weights, sorting, axis=1)
-            weights = np.mean(axis=0)
-            unsort = np.argsort(sorting, axis=1)
-            weights = np.take_along_axis(weights[np.newaxis, :],
-                                         unsort, axis=1)
-        # undo: II. norm
-        if norm:
-            weights *= norms[:, np.newaxis]
-
-        # undo: reshape
-        weights = np.reshape(weights, shape)
+    # III. smoothing
+    if dense_smooth or conv_smooth:
+        sorting = np.argsort(weights, axis=1)
+        weights = np.take_along_axis(weights, sorting, axis=1)
+        weights = np.mean(weights, axis=0)
+        unsort = np.argsort(sorting, axis=1)
+        weights = np.take_along_axis(weights[np.newaxis, :],
+                                     unsort, axis=1)
+    # undo: II. norm
+    if norm:
+        weights *= norms[:, np.newaxis]
 
     if quantization:
         weights = weights.astype(np.float16)
-
-    # undo: I. unpacking
-    if unpacked:
-        weights = [weights] + rest
 
     return weights
 
@@ -164,13 +114,35 @@ def proc_model(model_name, proc_args=None):
     model = model_cls()
 
     nzcounts = []
-    for layer in model.layers:
-        weights = proc_layer(layer, **proc_args)
-        layer.set_weights(weights)
-        # save non-zero count
+    for layer in model.layers[1:]:
         if isinstance(layer, (Dense, Conv2D)):
-            nzs = np.count_nonzero(weights[0], axis=1)
+            weights = layer.get_weights()
+
+            # get_weights() usually returns [weights, bias] if possible we
+            # don't want the bias
+            # I. unpacking
+            weights, rest = weights[0], weights[1:]
+
+            shape = np.shape(weights) # old shape
+            # calculate new shape and reshape weights
+            height = shape[-2]
+            width = shape[-1]
+            for dim in shape[:-2]:
+                width *= dim
+            new_shape = (height, width)
+            weights = np.reshape(weights, new_shape)
+
+            weights = proc_weights(weights, **proc_args)
+
+            # save non-zero count
+            nzs = np.count_nonzero(weights, axis=1)
             nzcounts.append([nzs.shape[0], int(nzs[0])])
+
+            # undo: reshape
+            weights = np.reshape(weights, shape)
+            weights = [weights] + rest
+
+            layer.set_weights(weights)
     result = evaluate(model, preproc_args)
     return result, nzcounts
 
