@@ -10,13 +10,10 @@ import json
 import os.path
 from os.path import expanduser
 import numpy as np
-import telegram
 
-import tensorflow as tf
 from tensorflow import set_random_seed
 
 import keras.applications as Kapp
-from keras.utils import multi_gpu_model
 from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
 from keras.layers.core import Dense
 
@@ -26,7 +23,7 @@ from sacred.observers import FileStorageObserver
 from sacred.observers import TelegramObserver
 
 from nnclib.generators import CropGenerator
-from nnclib.utils import get_results_dir
+from nnclib.utils import get_results_dir, model_dic
 
 
 EX = Experiment()
@@ -39,21 +36,7 @@ EX.observers.append(TelegramObserver.from_config('telegram.json'))
 def config():
     """Config function for the experiment."""
     # pylint: disable=unused-variable
-    model_names = [
-        "xception",  # 11
-        "vgg16",     # 9
-        "vgg19",     # 10
-        "resnet50",  # 8
-        "inceptionv3",        # 4
-        "inceptionresnetv2",  # 5
-        # "mobilenet",
-        # "mobilenetv2",
-                "densenet121",        # 1
-        "densenet169",        # 2
-        "densenet201",        # 3
-        "nasnetmobile",       # 7
-        "nasnetlarge"         # 6
-    ]
+    model_names = list(model_dic.keys())
     compile_args = {'optimizer': 'RMSprop',
                     'loss': 'categorical_crossentropy',
                     'metrics': [categorical_accuracy,
@@ -69,7 +52,8 @@ def config():
     # For the no processing (original/gold results), set proc_args={}
     proc_args = {'norm': 0,
                  'epsilon': 0,
-                 'smoothing': 0,
+                 'dense_smooth': 0,
+                 'conv_smooth': 0,
                  'quantization': 0}
     seed = 42
 
@@ -79,14 +63,14 @@ def get_same_type_layers(layers, ltype=Dense):
     return list(filter(lambda x: isinstance(x, ltype), layers))
 
 
-def proc_dense_layer(layer, norm, epsilon, quantization, smoothing):
+def proc_dense_layer(layer, norm, epsilon, quantization, dense_smooth, conv_smooth):
     """Process a single layer if it is Dense (or other given type)."""
     assert isinstance(layer, Dense)
     dense, bias = layer.get_weights()
     if norm:
         norms = np.linalg.norm(dense, axis=1)
         dense /= norms[:, np.newaxis]
-    if smoothing:
+    if dense_smooth:
         indices = np.argsort(dense, axis=1)
         dense = np.take_along_axis(dense, indices, axis=1)
         mean = dense.mean(axis=0)
@@ -125,58 +109,6 @@ def proc_model(model_name, proc_args=None):
     """
     # because of sacred:
     # pylint: disable=no-value-for-parameter
-    model_dic = {"xception":
-                 (Kapp.xception.Xception,
-                  {'preproc': Kapp.xception.preprocess_input,
-                   'target_size': 299}),
-                 "vgg16":
-                 (Kapp.vgg16.VGG16,
-                  {'preproc': Kapp.vgg16.preprocess_input,
-                   'target_size': 224}),
-                 "vgg19":
-                 (Kapp.vgg19.VGG19,
-                  {'preproc': Kapp.vgg19.preprocess_input,
-                   'target_size': 224}),
-                 "resnet50":
-                 (Kapp.resnet50.ResNet50,
-                  {'preproc': Kapp.resnet50.preprocess_input,
-                   'target_size': 224}),
-                 "inceptionv3":
-                 (Kapp.inception_v3.InceptionV3,
-                  {'preproc': Kapp.inception_v3.preprocess_input,
-                   'target_size': 299}),
-                 "inceptionresnetv2":
-                 (Kapp.inception_resnet_v2.InceptionResNetV2,
-                  {'preproc': Kapp.inception_resnet_v2.preprocess_input,
-                   'target_size': 299}),
-                 "mobilenet":
-                 (Kapp.mobilenet.MobileNet,
-                  {'preproc': Kapp.mobilenet.preprocess_input,
-                   'target_size': 224}),
-                 # "mobilenetv2":
-                 # (Kapp.mobilenet_v2.MobileNetV2,
-                 #  {'preproc': Kapp.mobilenet_v2.preprocess_input,
-                 #   'target_size': 224}),
-                 "densenet121":
-                 (Kapp.densenet.DenseNet121,
-                  {'preproc': Kapp.densenet.preprocess_input,
-                   'target_size': 224}),
-                 "densenet169":
-                 (Kapp.densenet.DenseNet169,
-                  {'preproc': Kapp.densenet.preprocess_input,
-                   'target_size': 224}),
-                 "densenet201":
-                 (Kapp.densenet.DenseNet201,
-                  {'preproc': Kapp.densenet.preprocess_input,
-                   'target_size': 224}),
-                 "nasnetmobile":
-                 (Kapp.nasnet.NASNetMobile,
-                  {'preproc': Kapp.nasnet.preprocess_input,
-                   'target_size': 224}),
-                 "nasnetlarge":
-                 (Kapp.nasnet.NASNetLarge,
-                  {'preproc': Kapp.nasnet.preprocess_input,
-                   'target_size': 331})}
     model_cls, preproc_args = model_dic[model_name]
     model = model_cls()
     # try:
@@ -207,13 +139,16 @@ def proc_all_models(_seed, model_names, proc_args):
     set_random_seed(_seed)
     basedir = EX.observers[0].basedir
     print("Basedir {}\n".format(basedir))
+
     json_name = "eval_norm{norm}_quant{quantization}_" \
-        "smooth{smoothing}_eps{epsilon}.json"
-    result_file = os.path.join(basedir, json_name.format(**proc_args))
+        "dsmooth{dense_smooth}_csmooth{conv_smooth}_eps{epsilon}_{basedir}.json"
+    result_file = os.path.join(basedir, json_name.format(basedir=basedir, **proc_args))
+
     json_name = "weight_norm{norm}_quant{quantization}_" \
-        "smooth{smoothing}_eps{epsilon}.json"
-    weights_file = os.path.join(basedir, json_name.format(**proc_args))
-    aggregation = {}  # aggregate all results in a dictionary
+        "dsmooth{dense_smooth}_csmooth{conv_smooth}_eps{epsilon}_{basedir}.json"
+    weights_file = os.path.join(basedir, json_name.format(basedir=basedir, **proc_args))
+
+    accuracy = {}  # aggregate all results in a dictionary
     weights = {}
     for index, name in enumerate(model_names):
         result = proc_model(name)
@@ -222,8 +157,8 @@ def proc_all_models(_seed, model_names, proc_args):
             print(">>>>>> {} - {}/{} Done.".format(name, index + 1,
                                                    len(model_names)))
             print(">>>>>> {} result = {}".format(name, result[0]))
-            aggregation[name] = result[0]
+            accuracy[name] = result[0]
             weights[name] = result[1]
-        json.dump(aggregation, open(result_file, "w"))
+        json.dump(accuracy, open(result_file, "w"))
         json.dump(weights, open(weights_file, "w"))
-    return aggregation
+    return accuracy
