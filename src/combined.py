@@ -15,6 +15,7 @@ from tensorflow import set_random_seed
 import keras.applications as Kapp
 from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
 from keras.layers.core import Dense
+from keras.layers.convolutional import Conv2D
 
 from sacred import Experiment
 # from sacred.utils import apply_backspaces_and_linefeeds # for progressbars
@@ -53,41 +54,91 @@ def config():
                  'epsilon': 0,
                  'dense_smooth': 0,
                  'conv_smooth': 0,
-                 'other_smooth': 0,
                  'quantization': 0}
     seed = 42
 
 
-def get_same_type_layers(layers, ltype=Dense):
-    """Return only Dense layers (or any other type)."""
-    return list(filter(lambda x: isinstance(x, ltype), layers))
+def proc_layer(layer, norm, epsilon, quantization, dense_smooth, conv_smooth):
+    """
+    Process a single layer.
 
+    Applies the following operations:
+    
+    1a. reshape           if smoothing or normalisation
+    2a. normalisation     if smoothing and normalisation
+    3a. sorting           if smoothing
+    3b. smoothing         if smoothing
+    3c. un-sorting        if sorted
+    4. pruning
+    2b. un-normalisation  if normalised
+    1b. un-reshape        if reshaped
+    5. quantisation
 
-def proc_dense_layer(layer, norm, epsilon, quantization, dense_smooth, conv_smooth, other_smooth):
-    """Process a single layer if it is Dense (or other given type)."""
-    assert isinstance(layer, Dense)
-    dense, bias = layer.get_weights()
-    if norm:
-        norms = np.linalg.norm(dense, axis=1)
-        dense /= norms[:, np.newaxis]
-    if dense_smooth:
-        indices = np.argsort(dense, axis=1)
-        dense = np.take_along_axis(dense, indices, axis=1)
-        mean = dense.mean(axis=0)
-        unsort_indices = np.argsort(indices, axis=1)
-        dense = np.take_along_axis(mean[np.newaxis, :],
-                                   unsort_indices,
-                                   axis=1)
-    if epsilon != 0:
-        cond = np.abs(dense) < epsilon
-        dense[cond] = 0
-    if norm:
-        dense *= norms[:, np.newaxis]
+    - reshape: for normalisation OR for smoothing
+    - normalisation: for normalisation, for pruning
+    - smooth: for smooth
+    """
+    # variables
+    weights = layer.get_weights()
+    smoothing = any(
+        [
+            dense_smooth and isinstance(layer, Dense),
+            conv_smooth and isinstance(layer, Conv2D)
+        ])
+
+    # get_weights() usually returns [weights, bias] if possible we
+    # don't want the bias
+    # I. unpacking
+    unpacked = False
+    if isinstance(weights, list) and len(weights) == 2:
+        weights, rest = weights[0], weights[1:]
+        unpacked = True
+    else:
+        return weights
+
+    # II. and III: if normalisation or smoothing, then reshape
+    if norm or smoothing or epsilon > 0:
+        shape = np.shape(weights) # old shape
+        # calculate new shape and reshape weights
+        height = shape[-2]
+        width = shape[-1]
+        for dim in shape[:-2]:
+            width *= dim
+        new_shape = (height, width)
+        weights = np.reshape(weights, new_shape)
+
+        # II. norm
+        if norm:
+            norms = np.linalg.norm(weights, axis=1)
+            weights /= norms[:, np.newaxis]
+
+        # Pruning (after normalisation).
+        if epsilon > 0:
+            weights[np.abs(dense) < epsilon] = 0
+
+        # III. smoothing
+        if smoothing: 
+            sorting = np.argsort(weights, axis=1)
+            weights = np.take_along_axis(weights, sorting, axis=1)
+            weights = np.mean(axis=0)
+            unsort = np.argsort(sorting, axis=1)
+            weights = np.take_along_axis(weights[np.newaxis, :],
+                                         unsort, axis=1)
+        # undo: II. norm
+        if norm:
+            weights *= norms[:, np.newaxis]
+
+        # undo: reshape
+        weights = np.reshape(weights, shape)
+
     if quantization:
-        dense = dense.astype(np.float16)
-    nzs = np.count_nonzero(dense, axis=1)
-    nzcount = (nzs.shape[0], int(nzs[0]))
-    return (dense, bias), nzcount
+        weights = weights.astype(np.float16)
+
+    # undo: I. unpacking
+    if unpacked:
+        weights = [weights] + rest
+
+    return weights
 
 
 @EX.capture
@@ -111,30 +162,26 @@ def proc_model(model_name, proc_args=None):
     # pylint: disable=no-value-for-parameter
     model_cls, preproc_args = model_dic[model_name]
     model = model_cls()
-    # try:
-    #     model = multi_gpu_model(model)
-    # except ValueError as exception:
-    #     print(exception)
 
-    layers = get_same_type_layers(model.layers)
-    if not layers:
-        # If the model has no dense layers, skip it by returning None.
-        return None
-    if not proc_args:
-        # if proc_args == None or {} then just evaluate.
-        return evaluate(model, preproc_args)
     nzcounts = []
-    for layer in layers:
-        new_layer, nzcount = proc_dense_layer(layer, **proc_args)
-        layer.set_weights(new_layer)
-        nzcounts.append(nzcount)
+    for layer in model.layers:
+        weights = proc_layer(layer, **proc_args)
+        layer.set_weights(weights)
+        # save non-zero count
+        if isinstance(layer, (Dense, Conv2D)):
+            nzs = np.count_nonzero(weights[0], axis=1)
+            nzcounts.append([nzs.shape[0], int(nzs[0])])
     result = evaluate(model, preproc_args)
     return result, nzcounts
 
 
 @EX.automain
 def proc_all_models(_seed, model_names, proc_args):
-    """Process all models."""
+    """
+    Process all models.  Handle the results (weights = number of
+    non-zero weights, accuracy) and write them in one of the results
+    files.
+    """
 
     set_random_seed(_seed)
     basedir = EX.observers[0].basedir
@@ -147,7 +194,6 @@ def proc_all_models(_seed, model_names, proc_args):
             "quant{quantization}",
             "dsmooth{dense_smooth}",
             "csmooth{conv_smooth}",
-            "osmooth{other_smooth}",
             "eps{epsilon}",
             "at{basedir}.json"
         ])
