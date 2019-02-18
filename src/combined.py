@@ -53,6 +53,7 @@ def config():
                  'epsilon': 0,
                  'dense_smooth': 0,
                  'conv_smooth': 0,
+                 'other_smooth': 0,
                  'quantization': 0}
     seed = 42
 
@@ -62,7 +63,7 @@ def get_same_type_layers(layers, ltype=Dense):
     return list(filter(lambda x: isinstance(x, ltype), layers))
 
 
-def proc_dense_layer(layer, norm, epsilon, quantization, dense_smooth, conv_smooth):
+def proc_dense_layer(layer, norm, epsilon, quantization, dense_smooth, conv_smooth, other_smooth):
     """Process a single layer if it is Dense (or other given type)."""
     assert isinstance(layer, Dense)
     dense, bias = layer.get_weights()
