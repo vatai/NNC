@@ -7,8 +7,7 @@ get_dense_weight_size.py.  It measures accuracy and compression.
 """
 
 import json
-import os.path
-from os.path import expanduser
+from os.path import expanduser, join, basename
 import numpy as np
 
 from tensorflow import set_random_seed
@@ -140,13 +139,25 @@ def proc_all_models(_seed, model_names, proc_args):
     basedir = EX.observers[0].basedir
     print("Basedir {}\n".format(basedir))
 
-    json_name = "eval_norm{norm}_quant{quantization}_" \
-        "dsmooth{dense_smooth}_csmooth{conv_smooth}_eps{epsilon}_{basedir}.json"
-    result_file = os.path.join(basedir, json_name.format(basedir=basedir, **proc_args))
-
-    json_name = "weight_norm{norm}_quant{quantization}_" \
-        "dsmooth{dense_smooth}_csmooth{conv_smooth}_eps{epsilon}_{basedir}.json"
-    weights_file = os.path.join(basedir, json_name.format(basedir=basedir, **proc_args))
+    result_template = "_".join(
+        [
+            "{prefix}",
+            "norm{norm}",
+            "quant{quantization}",
+            "dsmooth{dense_smooth}",
+            "csmooth{conv_smooth}",
+            "osmooth{other_smooth}",
+            "eps{epsilon}",
+            "at{basedir}.json"
+        ])
+    accuracy_file = result_template.format(prefix="accuracy",
+                                           basedir=basename(basedir),
+                                           **proc_args)
+    accuracy_file = join(basedir, accuracy_file)
+    weights_file = result_template.format(prefix="weights",
+                                          basedir=basename(basedir),
+                                          **proc_args)
+    weights_file = join(basedir, weights_file)
 
     accuracy = {}  # aggregate all results in a dictionary
     weights = {}
@@ -159,6 +170,6 @@ def proc_all_models(_seed, model_names, proc_args):
             print(">>>>>> {} result = {}".format(name, result[0]))
             accuracy[name] = result[0]
             weights[name] = result[1]
-        json.dump(accuracy, open(result_file, "w"))
+        json.dump(accuracy, open(accuracy_file, "w"))
         json.dump(weights, open(weights_file, "w"))
     return accuracy
