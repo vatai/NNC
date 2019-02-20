@@ -37,6 +37,24 @@ def get_epsilons(base=".", sort=True):
     return epsilons
 
 
+
+def reshape_weights(weights):
+    """
+    Takes a d1 x d2 x...x dn-1 x dn dimensional tensor, and reshapes
+    it to a d1 * dn-2 * dn x dn-1 dimensional matrix.
+    """ 
+    import numpy as np
+    shape = np.shape(weights)  # old shape
+    # calculate new shape and reshape weights
+    height = shape[-2]
+    width = shape[-1]
+    for dim in shape[:-2]:
+        width *= dim
+    new_shape = (height, width)
+    weights = np.reshape(weights, new_shape)
+    return weights
+
+
 model_dic = {"xception":
              (Kapp.xception.Xception,
               {'preproc': Kapp.xception.preprocess_input,
