@@ -1,14 +1,18 @@
-"""Download each model by instantiating it."""
+"""
+Collect the weights of Dense and Conv2D layers, and store them in json
+files.
+"""
 
 from json import load, dump
 import keras.applications
 from keras.layers.core import Dense
+from keras.layers.convolutional import Conv2D
 
 JSON = "dense_weights.json"
 
 
 def proc(model, name):
-    layers = filter(lambda x: isinstance(x, Dense), model.layers)
+    layers = filter(lambda x: isinstance(x, (Dense, Conv2D)), model.layers)
     if layers:
         weights = load(open(JSON, 'r'))
         result = []
