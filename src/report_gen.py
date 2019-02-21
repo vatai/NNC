@@ -118,16 +118,17 @@ def get_table(model, branch):
         line = "| norm | epsilon | rows | original | compress | compress rat |\n"
     print(line, end="")
     table.append(line)
+    print(">>>", list(results["norm"].keys()))
     for norm in results.keys():
         for eps, val in results[norm].items():
-            line = "| {} | ${}$ | ".format(norm, eps)
+            line = "| {:8} | ${:8.8}$ | ".format(norm, eps)
             if branch == 'results':
                 ctop1, ctop5 = val[1:]
                 ptop1, ptop5 = ctop1/top1, ctop5/top5
                 val = [ctop1, ctop5, ptop1, ptop5]
                 val = list(map(lambda t: "{:5.5}".format(t), val))
                 print(val)
-            else:
+            else:  # weights
                 rows = val[0][0][0]
                 oldcols = val[0][0][1]
                 newcols = val[0][1][1]
@@ -150,7 +151,7 @@ def proc_all_models(smooth=0):
     # Step2: generate figures.
     for name, model in results.items():
         fig = fig_model(model, name)
-        img_name = name + "{}.png".format(smooth)
+        img_name = "{}{}.pdf".format(name, smooth)
         fig.savefig(img_name)
         plt.close(fig)
 
@@ -165,7 +166,7 @@ def proc_all_models(smooth=0):
 """
         report_file.write(org_header)
         for name, model in results.items():
-            img_name = name + "{}.png".format(smooth)
+            img_name = "{}{}.pdf".format(name, smooth)
             results_table = get_table(model, 'results')
             compression_table = get_table(model, 'weights')
             report_file.write("* {}\n".format(name))
