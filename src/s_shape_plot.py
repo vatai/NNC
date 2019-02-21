@@ -5,6 +5,7 @@ weights.
 
 from glob import glob
 from os.path import splitext, basename, join
+from multiprocessing import Pool
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -20,7 +21,10 @@ def proc_file(name, base="report/s_shapes"):
         title = basename(name)
         title = splitext(title)[0]
         title = "{}_nrm{}".format(title, norm)
-        plt.plot(normalised)
+        if norm:
+            plt.plot(normalised)
+        else:
+            plt.plot(sorted_dense)
         # plt.title(title)
         plt.ylim(-1, 1)
         # plt.show()
@@ -29,16 +33,15 @@ def proc_file(name, base="report/s_shapes"):
         title += ".pdf"
         print("Saving fig: {}".format(title))
         plt.savefig(title)
+        plt.savefig(title.replace('pdf', 'png'))
         plt.close()
 
 
-def proc_all_files():
+def proc_all_files(src="report/weights/*"):
     """Process all pre-generated weight files."""
-    files = glob("report/weights/*")
-    n = len(files)
-    for i, name in enumerate(files):
-        print("Started {}/{}".format(i, n))
-        proc_file(name)
+    files = glob(src)
+    pool = Pool()
+    pool.map(proc_file, files)
 
 proc_all_files()
 print("Done")
