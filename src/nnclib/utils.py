@@ -37,7 +37,6 @@ def get_epsilons(base=".", sort=True):
     return epsilons
 
 
-
 def reshape_weights(weights):
     """
     Takes a d1 x d2 x...x dn-1 x dn dimensional tensor, and reshapes
@@ -53,6 +52,14 @@ def reshape_weights(weights):
     new_shape = (height, width)
     weights = np.reshape(weights, new_shape)
     return weights
+
+
+def sum_weights(pairs):
+    """Calculate the sum of weights from a list of pairs"""
+    total = 0
+    for rows, cols in pairs:
+        total += rows * cols
+    return total
 
 
 model_dic = {"xception":
@@ -87,7 +94,7 @@ model_dic = {"xception":
              # (Kapp.mobilenet_v2.MobileNetV2,
              #  {'preproc': Kapp.mobilenet_v2.preprocess_input,
              #   'target_size': 224}),
-                "densenet121":
+             "densenet121":
              (Kapp.densenet.DenseNet121,
               {'preproc': Kapp.densenet.preprocess_input,
                'target_size': 224}),
