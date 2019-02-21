@@ -6,17 +6,26 @@ different dictionary.
 from glob import glob
 from json import load
 from os.path import join, basename
+import matplotlib.pyplot as plt
 from pprint import pprint
+from nnclib.utils import sum_weights
 
 
 def collect_data(base='.'):
-    files = glob(join(base, 'accuracy_*'))
+    """
+    Function collect the data in the the current (or `base`)
+    directory, into a big dictionary from the weights and accuracy
+    json files.
+    """
+    files = glob(join(base, 'accuracy_*.json'))
     data = {}
     for file in files:
         fields = basename(file).split('_')
+        fields = fields[1:-2]
         accuracy = load(open(file))
         weights = load(open(file.replace('accuracy', 'weights')))
         for model in accuracy.keys():
+            # add both accuracy and weights
             data[tuple(fields+[model])] = accuracy[model] + weights[model]
     eps_idx = 0
     for i, v in enumerate(fields):
@@ -57,26 +66,39 @@ def cmpdict(d1, d2):
     return False
 
 
-def get_column_idx(data, prefix='eps'):
+def get_column_idx(data, prefix):
     for key in data.keys():
         for i, value in enumerate(key):
             if value.startswith(prefix):
                 return i
 
 
-def proc_all():
+def proc_all(all_weights_file="../all_weights.json"):
+    all_weights = load(open(all_weights_file, 'r'))
     data = collect_data()
-    pm = per_column(data, -1)
+    eps_idx = get_column_idx(data, 'eps')
+    per_model = per_column(data, -1)
+    per_model_eps = dictmap(lambda t: per_column(t, eps_idx), per_model)
 
-proc_all():
-for k, v in data.items():
-    # print(k)
-    # pprint(v[1:3])
+    for model, model_data in per_model_eps.items():
+        print(model)
+        for ekey in sorted(model_data.keys()):
+            print(model, ekey)
+            if ekey == 'eps0':
+                data = list(model_data[ekey].items())[0][1]
+                mweights = sum_weights(data[3:])
+            else:
+                eps = ekey[3:]
+                for params, data in model_data[ekey].items():
+                    top1, top5 = data[1], data[2]
+                    aweights = all_weights[model]
+                    cweights = sum_weights(data[3:])
+                    eff_cweights = aweights - (mweights - cweights)
+                    comp_rat = eff_cweights / aweights
+                    sparams = "-".join(map(lambda t: t[0] + t[-1], params))
+                    line = "{:0.04} {:14.4} {:14.04} {}"
+                    line = line.format(comp_rat, top1, top5, sparams) 
+                    print(line)
 
-    r = cmpdict(per_model, pm)
-    print(r)
 
-pme = dictmap(lambda t: per_column(t, 5), pm)
-print(pme.keys())
-print(sorted(pme['xception'].keys()))
-print(pme['xception']['eps0.001'].keys())
+proc_all()
