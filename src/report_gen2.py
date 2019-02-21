@@ -11,6 +11,10 @@ from pprint import pprint
 from nnclib.utils import sum_weights
 
 
+all_weights_file="../all_weights.json"
+all_weights = load(open(all_weights_file, 'r'))
+
+
 def collect_data(base='.'):
     """
     Function collect the data in the the current (or `base`)
@@ -27,10 +31,6 @@ def collect_data(base='.'):
         for model in accuracy.keys():
             # add both accuracy and weights
             data[tuple(fields+[model])] = accuracy[model] + weights[model]
-    eps_idx = 0
-    for i, v in enumerate(fields):
-        if v[:3] == 'eps':
-            eps_idx = i
     return data
 
 
@@ -43,6 +43,27 @@ def per_column(data, idx):
         else:
             result[key[idx]] = {new_key: value}
     return result
+
+
+def rearange(data, *args):
+    rv = {}
+    for fields, results in data.items():
+        d = rv
+        for a in args[:-1]:
+            if isinstance(a, list):
+                key = tuple([fields[i] for i in a])
+            else:
+                key = fields[a]
+            if key not in d:
+                d[key] = {}
+            d = d[key]
+        a = args[-1]
+        if isinstance(a, list):
+            key = tuple([fields[i] for i in a])
+        else:
+            key = fields[a]
+        d[key] = results
+    return rv
 
 
 def dictmap(f, d):
@@ -73,32 +94,50 @@ def get_column_idx(data, prefix):
                 return i
 
 
-def proc_all(all_weights_file="../all_weights.json"):
-    all_weights = load(open(all_weights_file, 'r'))
+def proc_cfg(cfg_info, mbest):
+    cfg, cfg_dict = cfg_info
+    mweights, mtop1, mtop5, aweights = mbest
+    for ekey, data in sorted(cfg_dict.items()):
+        eps = float(ekey[3:])
+        top1, top5 = data[1:3]
+        cweights = sum_weights(data[3:])
+        eff_cweights = aweights - (mweights - cweights)
+        comp_rat = eff_cweights / aweights
+        comp_size_rat = (2 * eff_cweights) / (4 * aweights)
+        line = "{:8} {:8.04} {:8.04} {:14.4} -> {:10.4} {:14.4} -> {:10.4}"
+        args = [eps, comp_rat, comp_size_rat, mtop1, top1, mtop5, top5]
+        line = line.format(*args)
+        print(line)
+    plt_data = map(lambda t: , sorted(cfg_dict.items()))
+    return plt.plot(plt_data)
+
+
+def proc_model(model_info):
+    model_name, model_data = model_info
+    print("===== {} =====".format(model_name))
+    cfg0 = ('norm0', 'quant0', 'dsmooth0', 'csmooth0')
+    data = model_data[cfg0]['eps0']
+    mweights = sum_weights(data[3:])
+    mtop1, mtop5 = data[1:3]
+    aweights = all_weights[model_name]
+    mbest = mweights, mtop1, mtop5, aweights
+    for cfg_info in sorted(list(model_data.items())[0:1]):
+        print("-- {} --".format(cfg_info[0]))
+        p = proc_cfg(cfg_info, mbest)
+        f = "_".join([model_name]+list(cfg_info[0]))
+        print("Saving {}".format(f))
+        # plt.savefig(p, f)
+
+
+def proc_all():
     data = collect_data()
+    fields = next(iter(data.keys()))
     eps_idx = get_column_idx(data, 'eps')
     per_model = per_column(data, -1)
     per_model_eps = dictmap(lambda t: per_column(t, eps_idx), per_model)
 
-    for model, model_data in per_model_eps.items():
-        print(model)
-        for ekey in sorted(model_data.keys()):
-            print(model, ekey)
-            if ekey == 'eps0':
-                data = list(model_data[ekey].items())[0][1]
-                mweights = sum_weights(data[3:])
-            else:
-                eps = ekey[3:]
-                for params, data in model_data[ekey].items():
-                    top1, top5 = data[1], data[2]
-                    aweights = all_weights[model]
-                    cweights = sum_weights(data[3:])
-                    eff_cweights = aweights - (mweights - cweights)
-                    comp_rat = eff_cweights / aweights
-                    sparams = "-".join(map(lambda t: t[0] + t[-1], params))
-                    line = "{:0.04} {:14.4} {:14.04} {}"
-                    line = line.format(comp_rat, top1, top5, sparams) 
-                    print(line)
-
+    result = rearange(data, 5, [0, 1, 2, 3], 4)
+    for model_info in result.items():
+        proc_model(model_info)
 
 proc_all()
