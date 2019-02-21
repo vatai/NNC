@@ -4,20 +4,26 @@ files.
 """
 
 from json import dump
+from multiprocessing import Pool
 from utils import model_dic
 
 
-def proc_all(outfile="all_weights.json"):
+def proc_model(params):
     num_models = len(model_dic.items())
-    results = {}
-    dump(results, open(outfile, 'w'))
-    for idx, (name, mcls) in enumerate(model_dic.items()):
-        print(">>> Started {}/{}".format(idx + 1, num_models))
-        model = mcls[0]()
-        results[name] = model.count_params()
-        print(">>> {} has {} parameter".format(name, results[name]))
-        dump(results, open(outfile, 'w'))
-        print(">>> Done {}/{}".format(idx + 1, num_models))
+    idx, name = params
+    model = model_dic[name][0]()
+    print(">>> Started {}/{}".format(idx + 1, num_models))
+    count_params = model.count_params()
+    print(">>> {} has {} parameter".format(name, count_params))
+    print(">>> Done {}/{}".format(idx + 1, num_models))
+    return (name, count_params)
+
+
+def proc_all(outfile="all_weights.json"):
+    pool = Pool(8)
+    results = pool.map(proc_model, enumerate(model_dic.keys()))
+    print(results)
+    dump(dict(results), open(outfile, 'w'))
 
 
 proc_all()
