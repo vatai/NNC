@@ -21,11 +21,12 @@ def proc_file(name, base="report/s_shapes"):
         title = splitext(title)[0]
         title = "{}_nrm{}".format(title, norm)
         plt.plot(normalised)
-        plt.title(title)
+        # plt.title(title)
         plt.ylim(-1, 1)
         # plt.show()
 
         title = join(base, title)
+        title += ".pdf"
         print("Saving fig: {}".format(title))
         plt.savefig(title)
         plt.close()
