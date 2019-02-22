@@ -191,4 +191,4 @@ def proc_all_models(_seed, model_names, proc_args):
             weights[name] = result[1]
         json.dump(accuracy, open(accuracy_file, "w"))
         json.dump(weights, open(weights_file, "w"))
-    return proc_args, accuracy, weights, basedir
+    return proc_args, accuracy, basedir
