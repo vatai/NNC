@@ -4,7 +4,6 @@ From the output of the normality test, generates plots and tables.
 
 
 from glob import glob
-from random import sample, seed
 from pickle import load
 from pprint import pprint
 from multiprocessing import Pool
@@ -12,7 +11,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 SRC = "*.pickle"
-seed(42)
 
 
 def make_figs(pickle_files):
@@ -25,12 +23,14 @@ def make_figs(pickle_files):
         else:
             d[model] = [pvals]
     for model, pvals in d.items():
-        p = None
+        plots = None
         for vals in pvals:
-            if p is None:
-                p = plt.plot(sorted(vals))
+            p = plt.plot(sorted(vals))
+            if plots is None:
+                plots = p
             else:
-                p += plt.plot(sorted(vals))
+                plots += p
+        plt.axhline(0.05, linestyle="--")
         fig_name = "courtains/{}.pdf".format(model)
         plt.savefig(fig_name)
         plt.savefig(fig_name.replace("pdf", "png"))
@@ -38,6 +38,7 @@ def make_figs(pickle_files):
 
 
 def make_tables(results):
+    total = 0
     for model, data in sorted(results.items()):
         assert data[3] == data[4] + data[5]
         pmin, pmax, psum, plen, yes, no = data
@@ -47,6 +48,8 @@ def make_tables(results):
         args = [model, pavg, yes, no, yesperc]
         line = line.format(*args)
         print(line)
+        total += plen
+    print("Total: {}".format(total))
 
 
 def proc_file(pickle_file, alpha):
@@ -59,7 +62,7 @@ def proc_file(pickle_file, alpha):
     plen = len(pvals)
     yes, no = 0, 0
     for p in pvals:
-        if p <= alpha:
+        if p > alpha:
             yes += 1
         else:
             no +=1
@@ -94,4 +97,4 @@ def proc_all(figs=False):
     make_tables(combined_results)
 
 
-proc_all()
+proc_all(True)

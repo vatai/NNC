@@ -20,10 +20,17 @@ seed(42)
 sample_size = 10
 base = "../weights/"
 results_file = "normality_results.pickle"
-alpha = 0.05
 npy_names = glob(join(base, "*"))
+npy_dense = glob(join(base, "*_dense*"))
+
 
 def proc_file(npy_name, do_plot=False):
+    """
+    Opens a numpy array from the base directory, and outputs a picle
+    file with the results from the Shapiro test, variance, ?and the
+    row name?.  If do_plot is true also generates a qqplot in bot pdf
+    and png.
+    """
     print(npy_name, do_plot)
     pickle_name = basename(npy_name)
     pickle_name = pickle_name.replace('npy', 'pickle')
@@ -41,11 +48,16 @@ def proc_file(npy_name, do_plot=False):
 
         if do_plot:
             p = qqplot(row, line="s")
-            fname = "{}.pdf".format(row_name)
-            print('FIG: {}'.format(fname))
+            fname = "qqplots/qq_{}.pdf".format(row_name)
             plt.savefig(fname)
             plt.savefig(fname.replace('pdf', 'png'))
             plt.close(p)
+            print('FIG: {}'.format(fname))
+            p = plt.hist(row)
+            fname = "hists/hist_{}.pdf".format(row_name)
+            plt.savefig(fname)
+            plt.savefig(fname.replace('pdf', 'png'))
+            plt.close()
 
         stats.append(stat)
         pvals.append(pval)
@@ -53,14 +65,16 @@ def proc_file(npy_name, do_plot=False):
         row_names.append(row_name)
 
     print("DONE {}".format(layer_name))
-    result = [stats, pvals, var_results, row_names]
+    result = [stats, pvals, var_results]
     dump(result, open(pickle_name, 'wb'))
 
 
 
-pool = Pool(6)
-pool.map(proc_file, npy_names)
+pool = Pool()
+#pool.map(proc_file, npy_names)
 
 print("----- ")
 params = map(lambda t: (t, True), sample(npy_names, sample_size))
+pool.starmap(proc_file, params)
+params = [(t, True) for t in npy_dense]
 pool.starmap(proc_file, params)
