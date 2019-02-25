@@ -26,7 +26,7 @@ npy_dense = glob(join(base, "*_dense*"))
 
 def proc_file(npy_name, do_plot=False):
     """
-    Opens a numpy array from the base directory, and outputs a picle
+    Opens a numpy array from the base directory, and outputs a pickle
     file with the results from the Shapiro test, variance, ?and the
     row name?.  If do_plot is true also generates a qqplot in bot pdf
     and png.

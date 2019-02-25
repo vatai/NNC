@@ -96,37 +96,79 @@ def get_column_idx(data, prefix):
 
 def proc_cfg(cfg_info, mbest):
     cfg, cfg_dict = cfg_info
-    mweights, mtop1, mtop5, aweights = mbest
+    model_name, mweights, mtop1, mtop5, aweights = mbest
+    comp_ratio_list, size_ratio_list = [], []
+    top1_list, top5_list, eps_list = [], [], []
     for ekey, data in sorted(cfg_dict.items()):
         eps = float(ekey[3:])
         top1, top5 = data[1:3]
         cweights = sum_weights(data[3:])
         eff_cweights = aweights - (mweights - cweights)
-        comp_rat = eff_cweights / aweights
-        comp_size_rat = (2 * eff_cweights) / (4 * aweights)
-        line = "{:8} {:8.04} {:8.04} {:14.4} -> {:10.4} {:14.4} -> {:10.4}"
-        args = [eps, comp_rat, comp_size_rat, mtop1, top1, mtop5, top5]
+        comp_ratio = eff_cweights / aweights
+        eff_size = 4 * aweights - 4 * mweights + 2 * cweights
+        size_ratio = eff_size / (4 * aweights)
+        line = "{:8} & {:8.04} & {:8.04} & {:14.4} & {:10.4} & {:14.4} & {:10.4}"
+        args = [eps, comp_ratio, size_ratio, mtop1, top1, mtop5, top5]
         line = line.format(*args)
         print(line)
-    plt_data = map(lambda t: , sorted(cfg_dict.items()))
-    return plt.plot(plt_data)
+        comp_ratio_list.append(comp_ratio)
+        size_ratio_list.append(size_ratio)
+        top1_list.append(top1)
+        top5_list.append(top5)
+        eps_list.append(eps)
+
+    fig, ax = plt.subplots()
+    top1_color = "red"
+    top5_color = "blue"
+    eps_list = list(sorted(map(lambda t: float(t[3:]), cfg_dict.keys())))
+    ax.plot(eps_list, top1_list, color=top1_color)
+    ax.plot(eps_list, top5_list, color=top5_color)
+    ax.plot(eps_list, comp_ratio_list, linestyle="--")
+    ax.plot(eps_list, size_ratio_list, linestyle="--")
+    ax.axhline(mtop1, color=top1_color, linestyle=":")
+    ax.axhline(mtop5, color=top5_color, linestyle=":")
+    ax.legend(['top1', 'top5',
+               'ratio (#param)', 'ratio (bytes)',
+               'top1 (orig)', 'top5 (orig)'])
+    # fig.show()
+    # plt.show()
+    tbl = list(zip(top1_list, top5_list, comp_ratio_list, size_ratio_list, eps_list))
+    gtop1 = max(tbl, key=lambda t: t[0])
+    gtop5 = max(tbl, key=lambda t: t[1])
+    gcomp = min(tbl, key=lambda t: t[2])
+    gsize = min(tbl, key=lambda t: t[3])
+    args = [gtop1[0], gtop1[3], gtop1[4],
+            gtop5[1], gtop5[3], gtop5[4],
+            gsize[0], gsize[1], gsize[3], gsize[4]]
+    args = map(lambda t: round(1000*t)/10, args)
+    line = " & {:5} & {:5} & {}  & {:5} & {:5} & {}  & {:5} & {:5} & {:5} & {}".format(*args)
+    #print(line)
+    return fig
 
 
 def proc_model(model_info):
     model_name, model_data = model_info
-    print("===== {} =====".format(model_name))
-    cfg0 = ('norm0', 'quant0', 'dsmooth0', 'csmooth0')
+    #### print("===== {} =====".format(model_name))
+    cfg0 = next(iter(sorted(model_data.keys())))
+    #### print(cfg0)
     data = model_data[cfg0]['eps0']
     mweights = sum_weights(data[3:])
     mtop1, mtop5 = data[1:3]
     aweights = all_weights[model_name]
-    mbest = mweights, mtop1, mtop5, aweights
-    for cfg_info in sorted(list(model_data.items())[0:1]):
-        print("-- {} --".format(cfg_info[0]))
-        p = proc_cfg(cfg_info, mbest)
-        f = "_".join([model_name]+list(cfg_info[0]))
-        print("Saving {}".format(f))
-        # plt.savefig(p, f)
+    mbest = model_name, mweights, mtop1, mtop5, aweights
+    for cfg_info in model_data.items():
+        line = "{:17} & ".format(model_name)
+        line += "".join(map(lambda t: t[-1], cfg_info[0]))
+        line += "0_" if len(cfg_info[0]) < 4 else "_" 
+        print(line, end="")
+        #print("-- {} --".format(cfg_info[0]))
+        # print("-- {} --".format(cfg_info[0]))
+        fig = proc_cfg(cfg_info, mbest)
+        fig_name = "_".join([model_name]+list(cfg_info[0]))
+        fig_name = "figs/{}.pdf".format(fig_name)
+        fig.savefig(fig_name)
+        fig.savefig(fig_name.replace("pdf", "png"))
+        plt.close(fig)
 
 
 def proc_all():
@@ -135,9 +177,10 @@ def proc_all():
     eps_idx = get_column_idx(data, 'eps')
     per_model = per_column(data, -1)
     per_model_eps = dictmap(lambda t: per_column(t, eps_idx), per_model)
-
-    result = rearange(data, 5, [0, 1, 2, 3], 4)
+    print('epsilon index: {}'.format(eps_idx))
+    result = rearange(data, eps_idx + 1, list(range(eps_idx)), eps_idx)
     for model_info in result.items():
         proc_model(model_info)
+
 
 proc_all()
