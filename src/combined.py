@@ -66,39 +66,27 @@ def proc_weights(weights, norm, epsilon, quantization, dense_smooth, conv_smooth
     """
     # II. norm
     if norm:
-        norms = np.linalg.norm(weights, axis=1)
-        weights /= norms[:, np.newaxis]
+        norms = np.linalg.norm(weights, axis=0)
+        weights /= norms
 
     # Pruning (after normalisation).
-    if epsilon > 0:
-        weights[np.abs(weights) < epsilon] = 0
+    weights[np.abs(weights) < epsilon] = 0
 
     # III. smoothing
     if dense_smooth or conv_smooth:
-        sorting = np.argsort(weights, axis=1)
-        weights = np.take_along_axis(weights, sorting, axis=1)
-        weights = np.mean(weights, axis=0)
-        unsort = np.argsort(sorting, axis=1)
-        weights = np.take_along_axis(weights[np.newaxis, :],
-                                     unsort, axis=1)
+        sorting = np.argsort(weights, axis=0)
+        weights = np.take_along_axis(weights, sorting, axis=0)
+        weights = np.mean(weights, axis=1)
+        unsort = np.argsort(sorting, axis=0)
+        weights = np.take_along_axis(weights[:, np.newaxis], unsort, axis=0)
     # undo: II. norm
     if norm:
-        weights *= norms[:, np.newaxis]
+        weights *= norms
 
     if quantization:
         weights = weights.astype(np.float16)
 
     return weights
-
-
-@EX.capture
-def evaluate(model, preproc_args, compile_args, gen_args, eval_args):
-    """Evaluate model."""
-    model.compile(**compile_args)
-    gen_args.update(preproc_args)
-    generator = CropGenerator(**gen_args)
-    result = model.evaluate_generator(generator, **eval_args)
-    return result
 
 
 @EX.capture
@@ -115,36 +103,54 @@ def proc_model(model_name, proc_args=None):
 
     nzcounts = []
     for layer in model.layers[1:]:
-        if isinstance(layer, (Dense, Conv2D)):
+        dense_smooth = proc_args['dense_smooth'] and isinstance(layer, Dense)
+        conv_smooth = proc_args['conv_smooth'] and isinstance(layer, Conv2D)
+        just_epsilon = proc_args['epsilon'] > 0 and \
+            not proc_args['dense_smooth'] and \
+            not proc_args['conv_smooth']
+        if dense_smooth or conv_smooth or just_epsilon:
             weights = layer.get_weights()
 
             # get_weights() usually returns [weights, bias] if possible we
             # don't want the bias
             # I. unpacking
-            weights, rest = weights[0], weights[1:]
+            if not just_epsilon:
+                weights, rest = weights[0], weights[1:]
 
-            shape = np.shape(weights) # old shape
-            # calculate new shape and reshape weights
-            height = shape[-2]
-            width = shape[-1]
-            for dim in shape[:-2]:
-                width *= dim
-            new_shape = (height, width)
-            weights = np.reshape(weights, new_shape)
+                shape = np.shape(weights) # old shape
+                # calculate new shape and reshape weights
+                height = shape[-2]
+                width = shape[-1]
+                for dim in shape[:-2]:
+                    width *= dim
+                new_shape = (width, height)
+                weights = np.reshape(weights, new_shape)
 
             weights = proc_weights(weights, **proc_args)
 
             # save non-zero count
-            nzs = np.count_nonzero(weights, axis=1)
-            nzcounts.append([nzs.shape[0], int(nzs[0])])
+            if not just_epsilon:
 
-            # undo: reshape
-            weights = np.reshape(weights, shape)
-            weights = [weights] + rest
+                # undo: reshape
+                weights = np.reshape(weights, shape)
+                weights = [weights] + rest
 
             layer.set_weights(weights)
+
+            nzs = np.count_nonzero(weights, axis=1)
+            nzcounts.append([nzs.shape[0], int(nzs[0])])
     result = evaluate(model, preproc_args)
     return result, nzcounts
+
+
+@EX.capture
+def evaluate(model, preproc_args, compile_args, gen_args, eval_args):
+    """Evaluate model."""
+    model.compile(**compile_args)
+    gen_args.update(preproc_args)
+    generator = CropGenerator(**gen_args)
+    result = model.evaluate_generator(generator, **eval_args)
+    return result
 
 
 @EX.automain
