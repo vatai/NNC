@@ -107,38 +107,36 @@ def proc_model(model_name, proc_args=None):
         conv_smooth = proc_args['conv_smooth'] and isinstance(layer, Conv2D)
         just_epsilon = proc_args['epsilon'] > 0 and \
             not proc_args['dense_smooth'] and \
-            not proc_args['conv_smooth']
+            not proc_args['conv_smooth'] and \
+            isinstance(layer, (Dense, Conv2D))
         if dense_smooth or conv_smooth or just_epsilon:
             weights = layer.get_weights()
 
             # get_weights() usually returns [weights, bias] if possible we
             # don't want the bias
             # I. unpacking
-            if not just_epsilon:
-                weights, rest = weights[0], weights[1:]
+            weights, rest = weights[0], weights[1:]
 
-                shape = np.shape(weights) # old shape
-                # calculate new shape and reshape weights
-                height = shape[-2]
-                width = shape[-1]
-                for dim in shape[:-2]:
-                    width *= dim
-                new_shape = (width, height)
-                weights = np.reshape(weights, new_shape)
+            shape = np.shape(weights) # old shape
+            # calculate new shape and reshape weights
+            height = shape[-2]
+            width = shape[-1]
+            for dim in shape[:-2]:
+                width *= dim
+            new_shape = (width, height)
+            weights = np.reshape(weights, new_shape)
 
             weights = proc_weights(weights, **proc_args)
 
             # save non-zero count
-            if not just_epsilon:
-
-                # undo: reshape
-                weights = np.reshape(weights, shape)
-                weights = [weights] + rest
+            nzs = np.count_nonzero(weights, axis=1)
+            nzcounts.append([nzs.shape[0], int(nzs[0])])
+            # undo: reshape
+            weights = np.reshape(weights, shape)
+            weights = [weights] + rest
 
             layer.set_weights(weights)
 
-            nzs = np.count_nonzero(weights, axis=1)
-            nzcounts.append([nzs.shape[0], int(nzs[0])])
     result = evaluate(model, preproc_args)
     return result, nzcounts
 
