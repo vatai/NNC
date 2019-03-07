@@ -1,2 +1,0 @@
-# NNC
-Neural Network compression

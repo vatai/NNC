@@ -1,0 +1,3 @@
+#+TITLE: Experiments for the paper "Compression with insight into layers of deep neural networks"
+
+Remark, due to an oversight there is a name collision.  There are two "small" values in the paper $\delta$ and $\varepsilon$.  In the source code they are both referred to as $\varepsilon$.
