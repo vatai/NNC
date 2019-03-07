@@ -1,0 +1,1 @@
+{"xception": 22910480, "vgg16": 138357544, "vgg19": 143667240, "resnet50": 25636712, "inceptionv3": 23851784, "inceptionresnetv2": 55873736, "mobilenet": 4253864, "densenet121": 8062504, "densenet169": 14307880, "densenet201": 20242984, "nasnetmobile": 5326716, "nasnetlarge": 88949818}
