@@ -11,21 +11,17 @@ import matplotlib.pyplot as plt
 
 
 def proc_file(name, base="report/s_shapes"):
-    """Process a single layer if it is Dense (or other given type)."""
+    """Process a single layer and save the s-shape plot."""
     dense = np.load(name)
-    sorted_dense = np.sort(dense, axis=0)
-    norms_dense = np.linalg.norm(dense, axis=0)
+    dense = np.sort(dense, axis=0)
 
-    normalised = sorted_dense / norms_dense[np.newaxis, :]
     for norm in [0, 1]:
         title = basename(name)
         title = splitext(title)[0]
         title = "{}_nrm{}".format(title, norm)
         if norm:
-            plt.plot(normalised)
-        else:
-            plt.plot(sorted_dense)
-        # plt.title(title)
+            dense /= np.linalg.norm(dense, axis=0)
+        plt.plot(dense)
         plt.ylim(-1, 1)
         # plt.show()
 
@@ -42,6 +38,7 @@ def proc_all_files(src="report/weights/*"):
     files = glob(src)
     pool = Pool()
     pool.map(proc_file, files)
+
 
 proc_all_files()
 print("Done")
