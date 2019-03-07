@@ -1,4 +1,5 @@
 #+TITLE: Experiments for the paper "Compression with insight into layers of deep neural networks"
 
-IMPORTANT REMARK ABOUT THE CODE: due to an oversight there is a name collision.  There are two "small" values in the paper \delta and \varepsilon.  In the source code they are both referred to as \varepsilon.
+* Important remark about the code
+Due to an oversight there is a name collision.  There are two "small" values in the paper \delta and \varepsilon.  In the source code they are both referred to as \varepsilon.
 Usually the ~epsilon~ or ~eps~ variables refer to the \delta, and \varepsilon is only dealt with in ~epsilons.py~.
