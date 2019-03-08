@@ -1,11 +1,118 @@
 #+TITLE: Running Keras programs on IST servers (with GPUs) using Singularity
+#+OPTIONS: toc:nil num:nil
 
-This short document describes how to run Keras applications (with Tensorflow kernel) on IST servers at The University of Tokyo.
-The main software used is Singularity, a ... software.
+This document describes how to run (for example) a Keras applications (with Tensorflow backend) with proper GPU acceleration on the IST cluseter of The University of Tokyo.
+This can be achieved using Slurm scheduling software and Singularity container software on the IST cluster.
 
-* Overview
-  The step needed to set everything up can be divided into two groups: 
-  - in the first part we build the Singularity image, usually on a 'local' computer, where we have ~sudo~ access;
-  - which is later run no the IST
-* Local host
-* Remote host
+* On the local host
+  The steps needed to build a Singularity image should be run on the local host (or any other conputer) with ~sudo~ previlages:
+  1. Build (make) and install the proper version of Singularity.
+     The version installed on the server is 2.5.2.
+     This can be easily checked (on the server):
+     #+BEGIN_EXAMPLE
+       u00165@login001:~/code/NNC$ singularity --version
+       2.5.2-master.b258b65
+     #+END_EXAMPLE
+     The installation instructions can be found on [[https://www.sylabs.io/guides/2.5/user-guide/quick_start.html#quick-installation-steps][the Singularity website]].  You should probably change the version to 2.5.2 (the commit which starts with ~b258b65~) to match the version on the server, that is:
+     #+BEGIN_EXAMPLE
+       git clone https://github.com/sylabs/singularity.git
+       cd singularity
+       git fetch --all
+       git checkout 2.5.2  # NOTE: the modification
+       ./autogen.sh
+       ./configure --prefix=/usr/local  # or where ever you'd like it to be installed
+       make
+       sudo make install
+     #+END_EXAMPLE
+  2. Create a [[https://www.sylabs.io/guides/2.5/user-guide/container_recipes.html][container recipe]]/image definition (~.def~) file which tells Singularity how to build the container image.
+     Official [[https://www.tensorflow.org/install/docker][Tensorflow images]] are available on Docker.
+     The version compatible with the driver installed on the servers is ~1.11-gpu~.
+     Additional packages can be installed using ~pip~ (Keras is already installed in the Tensorflow container).
+     An example recipe:
+     #+BEGIN_EXAMPLE
+       user@localhost ~/code/NNC$ cat singularity/tf-11-mod.def 
+       Bootstrap: docker
+       From: tensorflow/tensorflow:1.11.0-gpu
+
+       %post
+           pip install --upgrade pip
+           pip install python-telegram-bot
+           pip install sacred
+     #+END_EXAMPLE
+  3. The command to build the container image file ~tf-11-mod~ from the recipe ~tf-11-mod.def~ is:
+     #+BEGIN_EXAMPLE
+       sudo singularity build tf-11-mod tf-11-mod.def
+     #+END_EXAMPLE
+  4. Upload the image file with ~scp~ or ~rsync~:
+     #+BEGIN_EXAMPLE
+       rsync --append --progress --checksum singularity/tf-11-mod u00165@login000.cluster.i.u-tokyo.ac.jp:code/NNC/singularity/
+     #+END_EXAMPLE
+* On the remote host (IST cluster)
+  1. Create the program you want to run.  
+     In the example bellow ~test_gpu.py~ is a simple python program, which checks the availability of GPUs on the system using Tensorflows ~device_lib~ and ~keras.backend~:
+     #+BEGIN_EXAMPLE
+       u00165@login001:~/code/NNC$ cat src/nnclib/test_gpu.py 
+       from tensorflow.python.client import device_lib
+       print(device_lib.list_local_devices())
+
+       from keras import backend
+       print(backend.tensorflow_backend._get_available_gpus())
+     #+END_EXAMPLE
+     The ~test_gpu.py~ python script can be executed using the ~tf-11-mod~ container with the following command: 
+     #+BEGIN_EXAMPLE
+     singularity exec --nv ./singularity/tf-11-mod python ./src/nnclib/test_gpu.py
+     #+END_EXAMPLE
+     Pay attention to the ~--nv~ switch which enables Singularity to access the Nvidia GPU.
+  2. A shell script is needed to execute ~test_gpu.py~ using Slurm's ~sbatch~.  To use the GPUs of the cluster the ~--gres=gpu:1~ option needs to be specified:
+     #+BEGIN_EXAMPLE
+       u00165@login001:~/code/NNC$ cat runscripts/run_test_gpu.sh 
+       #!/bin/sh
+
+       #SBATCH -p p
+       #SBATCH --gres=gpu:1
+
+       srun sh -c "singularity exec --nv ./singularity/tf-11-mod python ./src/nnclib/test_gpu.py"
+     #+END_EXAMPLE
+     Here the important point is to tell Slurm's ~sbatch~ to use the GPUs with the ~--gres=gpu:1~ option for ~sbatch~.
+  3. The above program can be launched with ~sbatch~.
+     The output can be examined by viewing the correspongin ~slurm-*.out~ file, and the results should be similar to the following:
+     #+BEGIN_EXAMPLE
+       u00165@login001:~/code/NNC$ sbatch runscripts/run_test_gpu.sh 
+       Submitted batch job 166403
+       u00165@login001:~/code/NNC$ cat slurm-166403.out 
+       2019-03-08 13:42:20.577261: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+       2019-03-08 13:42:22.032962: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1411] Found device 0 with properties: 
+       name: Tesla P100-PCIE-12GB major: 6 minor: 0 memoryClockRate(GHz): 1.3285
+       pciBusID: 0000:85:00.0
+       totalMemory: 11.91GiB freeMemory: 11.62GiB
+       2019-03-08 13:42:22.033009: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1490] Adding visible gpu devices: 0
+       2019-03-08 13:42:26.215463: I tensorflow/core/common_runtime/gpu/gpu_device.cc:971] Device interconnect StreamExecutor with strength 1 edge matrix:
+       2019-03-08 13:42:26.215525: I tensorflow/core/common_runtime/gpu/gpu_device.cc:977]      0 
+       2019-03-08 13:42:26.215548: I tensorflow/core/common_runtime/gpu/gpu_device.cc:990] 0:   N 
+       2019-03-08 13:42:26.216186: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1103] Created TensorFlow device (/device:GPU:0 with 11243 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-12GB, pci bus id: 0000:85:00.0, compute capability: 6.0)
+       Using TensorFlow backend.
+       2019-03-08 13:42:26.553035: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1490] Adding visible gpu devices: 0
+       2019-03-08 13:42:26.553091: I tensorflow/core/common_runtime/gpu/gpu_device.cc:971] Device interconnect StreamExecutor with strength 1 edge matrix:
+       2019-03-08 13:42:26.553107: I tensorflow/core/common_runtime/gpu/gpu_device.cc:977]      0 
+       2019-03-08 13:42:26.553120: I tensorflow/core/common_runtime/gpu/gpu_device.cc:990] 0:   N 
+       2019-03-08 13:42:26.553344: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1103] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 11243 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-12GB, pci bus id: 0000:85:00.0, compute capability: 6.0)
+       [name: "/device:CPU:0"
+       device_type: "CPU"
+       memory_limit: 268435456
+       locality {
+       }
+       incarnation: 7635315157109514401
+       , name: "/device:GPU:0"
+       device_type: "GPU"
+       memory_limit: 11789713408
+       locality {
+         bus_id: 2
+         numa_node: 1
+         links {
+         }
+       }
+       incarnation: 155914916531147594
+       physical_device_desc: "device: 0, name: Tesla P100-PCIE-12GB, pci bus id: 0000:85:00.0, compute capability: 6.0"
+       ]
+       ['/job:localhost/replica:0/task:0/device:GPU:0']
+     #+END_EXAMPLE
