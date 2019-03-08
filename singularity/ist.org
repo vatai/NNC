@@ -1,0 +1,11 @@
+#+TITLE: Running Keras programs on IST servers (with GPUs) using Singularity
+
+This short document describes how to run Keras applications (with Tensorflow kernel) on IST servers at The University of Tokyo.
+The main software used is Singularity, a ... software.
+
+* Overview
+  The step needed to set everything up can be divided into two groups: 
+  - in the first part we build the Singularity image, usually on a 'local' computer, where we have ~sudo~ access;
+  - which is later run no the IST
+* Local host
+* Remote host
