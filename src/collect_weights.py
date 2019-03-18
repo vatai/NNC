@@ -4,22 +4,10 @@ to feed it to the jupyter notebook for analysis.
 """
 
 from os.path import join
-from nnclib.utils import model_dic
+from nnclib.utils import model_dic, reshape_weights
 import numpy as np
 from keras.layers.core import Dense
 from keras.layers.convolutional import Conv2D
-
-
-def proc_weights(weights):
-    shape = np.shape(weights)
-    # print('shape1', shape)
-    dim1 = shape[-2]
-    dim2 = shape[-1]
-    for dim in shape[:-2]:
-        dim2 *= dim
-    new_weights = np.reshape(weights, [dim1, dim2])
-    # print('new_shape', np.shape(new_weights))
-    return new_weights
 
 
 def proc_layer(layer):
@@ -32,7 +20,7 @@ def proc_layer(layer):
         weights = layer.get_weights()[0]
         shp = np.shape(weights)
         shp = 'x'.join(map(str, shp))
-        result = proc_weights(weights)
+        result = reshape_weights(weights)
         return [typ, shp, result]
 
 def proc_model(model):
@@ -44,7 +32,7 @@ def proc_model(model):
     return results
 
 
-def write_results(results, name, base="report/weights"):
+def write_results(results, name, base="."):
     for idx, typ, shp, result in results:
         file_name = "{}_{}_{}_{}".format(name, idx, typ, shp)
         file_name = join(base, file_name)

@@ -23,7 +23,7 @@ from sacred.observers import FileStorageObserver
 from sacred.observers import TelegramObserver
 
 from nnclib.generators import CropGenerator
-from nnclib.utils import get_results_dir, model_dic
+from nnclib.utils import get_results_dir, model_dic, reshape_weights
 
 
 EX = Experiment()
@@ -117,14 +117,8 @@ def proc_model(model_name, proc_args=None):
             # I. unpacking
             weights, rest = weights[0], weights[1:]
 
-            shape = np.shape(weights) # old shape
-            # calculate new shape and reshape weights
-            height = shape[-2]
-            width = shape[-1]
-            for dim in shape[:-2]:
-                width *= dim
-            new_shape = (width, height)
-            weights = np.reshape(weights, new_shape)
+            shape = np.shape(weights)  # old shape
+            weights = reshape_weights(weights)
 
             weights = proc_weights(weights, **proc_args)
 
