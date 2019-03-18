@@ -23,7 +23,7 @@ from sacred.observers import FileStorageObserver
 from sacred.observers import TelegramObserver
 
 from nnclib.generators import CropGenerator
-from nnclib.utils import get_results_dir, model_dic, reshape_weights
+from nnclib.utils import get_results_dir, model_dict, reshape_weights
 
 
 EX = Experiment()
@@ -36,7 +36,7 @@ EX.observers.append(TelegramObserver.from_config('telegram.json'))
 def config():
     """Config function for the experiment."""
     # pylint: disable=unused-variable
-    model_names = list(model_dic.keys())
+    model_names = list(model_dict.keys())
     compile_args = {'optimizer': 'RMSprop',
                     'loss': 'categorical_crossentropy',
                     'metrics': [categorical_accuracy,
@@ -98,7 +98,7 @@ def proc_model(model_name, proc_args=None):
     """
     # because of sacred:
     # pylint: disable=no-value-for-parameter
-    model_cls, preproc_args = model_dic[model_name]
+    model_cls, preproc_args = model_dict[model_name]
     model = model_cls()
 
     nzcounts = []

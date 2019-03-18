@@ -4,7 +4,7 @@ to feed it to the jupyter notebook for analysis.
 """
 
 from os.path import join
-from nnclib.utils import model_dic, reshape_weights
+from nnclib.utils import model_dict, reshape_weights
 import numpy as np
 from keras.layers.core import Dense
 from keras.layers.convolutional import Conv2D
@@ -40,7 +40,7 @@ def write_results(results, name, base="."):
 
 
 def proc_all_models():
-    for name, value in model_dic.items():
+    for name, value in model_dict.items():
         print(name)
         model = value[0]()
         results = proc_model(model)

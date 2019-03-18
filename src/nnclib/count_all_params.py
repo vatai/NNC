@@ -5,13 +5,13 @@ files.
 
 from json import dump
 from multiprocessing import Pool
-from utils import model_dic
+from utils import model_dict
 
 
 def proc_model(params):
-    num_models = len(model_dic.items())
+    num_models = len(model_dict.items())
     idx, name = params
-    model = model_dic[name][0]()
+    model = model_dict[name][0]()
     print(">>> Started {}/{}".format(idx + 1, num_models))
     count_params = model.count_params()
     print(">>> {} has {} parameter".format(name, count_params))
@@ -21,7 +21,7 @@ def proc_model(params):
 
 def proc_all(outfile="all_weights.json"):
     pool = Pool(8)
-    results = pool.map(proc_model, enumerate(model_dic.keys()))
+    results = pool.map(proc_model, enumerate(model_dict.keys()))
     print(results)
     dump(dict(results), open(outfile, 'w'))
 

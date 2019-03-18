@@ -2,11 +2,11 @@
 Examine the different layers in the keras_applications pretrained networks.
 """
 
-from nnclib.utils import model_dic
 from pickle import dump
+from nnclib.utils import model_dict
 
 stats = {}
-for name, model_cls in model_dic.items():
+for name, model_cls in model_dict.items():
     model_cls = model_cls[0]
     model = model_cls()
     for layer in model.layers:

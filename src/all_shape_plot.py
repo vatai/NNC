@@ -5,7 +5,7 @@ import multiprocessing
 
 import numpy as np
 import matplotlib.pyplot as plt
-from nnclib.utils import model_dic
+from nnclib.utils import model_dict, reshape_weights
 
 def proc_weights(p):
     a = np.argsort(p, axis=0)
@@ -21,7 +21,7 @@ def process(model_name):
     # model_name = model_info[0]
     print(model_name)
     # model = model_info[1][0]()
-    model = model_dic[model_name][0]()
+    model = model_dict[model_name][0]()
 
     # skip input layer
     for idx, layer in enumerate(model.layers[1:]):
@@ -48,4 +48,4 @@ def process(model_name):
 
 
 pool = multiprocessing.Pool()
-pool.map(process, model_dic.keys())
+pool.map(process, model_dict.keys())
