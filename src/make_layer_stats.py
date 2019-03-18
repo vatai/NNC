@@ -1,5 +1,9 @@
 """
-Examine the different layers in the keras_applications pretrained networks.
+Examine the different layers in the keras_applications pretrained
+networks.
+
+The result is a dictionary, with layer name as key, and a list of
+model names which contain the given layer.
 """
 
 from pickle import dump

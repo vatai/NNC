@@ -5,7 +5,6 @@ From the output of the normality test, generates plots and tables.
 
 from glob import glob
 from pickle import load
-from pprint import pprint
 from multiprocessing import Pool
 import numpy as np
 import matplotlib.pyplot as plt
@@ -35,21 +34,6 @@ def make_figs(pickle_files):
         plt.savefig(fig_name)
         plt.savefig(fig_name.replace("pdf", "png"))
         plt.close()
-
-
-def make_tables(results):
-    total = 0
-    for model, data in sorted(results.items()):
-        assert data[3] == data[4] + data[5]
-        pmin, pmax, psum, plen, yes, no = data
-        pavg = psum / plen
-        yesperc = round(yes / plen * 1000) / 10
-        line = "{:17} & {:9.5} & {:5} & {:5} & {:} \\\\"
-        args = [model, pavg, yes, no, yesperc]
-        line = line.format(*args)
-        print(line)
-        total += plen
-    print("Total: {}".format(total))
 
 
 def proc_file(pickle_file, alpha):
@@ -84,6 +68,21 @@ def combine_results(pickle_files, results):
         else:
             rv[key] = list(result)
     return rv
+
+
+def make_tables(results):
+    total = 0
+    for model, data in sorted(results.items()):
+        assert data[3] == data[4] + data[5]
+        pmin, pmax, psum, plen, yes, no = data
+        pavg = psum / plen
+        yesperc = round(yes / plen * 1000) / 10
+        line = "{:17} & {:9.5} & {:5} & {:5} & {:} \\\\"
+        args = [model, pavg, yes, no, yesperc]
+        line = line.format(*args)
+        print(line)
+        total += plen
+    print("Total: {}".format(total))
 
 
 def proc_all(figs=False):

@@ -1,12 +1,10 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
-# get_ipython().run_line_magic('matplotlib', 'inline')
+"""
+Opens a numpy array from the base directory, and outputs a pickle file
+with the results from the Shapiro test, variance, ?and the row name?.
+If do_plot is true also generates a qqplot in bot pdf and png.
+"""
 from glob import glob
-from os.path import join, basename, splitext, exists
+from os.path import join, basename, splitext
 from pickle import dump
 from random import sample, seed
 from multiprocessing import Pool
@@ -25,12 +23,6 @@ npy_dense = glob(join(base, "*_dense*"))
 
 
 def proc_file(npy_name, do_plot=False):
-    """
-    Opens a numpy array from the base directory, and outputs a pickle
-    file with the results from the Shapiro test, variance, ?and the
-    row name?.  If do_plot is true also generates a qqplot in bot pdf
-    and png.
-    """
     print(npy_name, do_plot)
     pickle_name = basename(npy_name)
     pickle_name = pickle_name.replace('npy', 'pickle')

@@ -1,26 +1,28 @@
-"""Make plots for all layers for a given network."""
-import sys
+"""
+Make (normalised) plots for all layers for a given network
+demonstrating the possibility of compression.
+
+The plots are saved in the working directory.
+"""
 import multiprocessing
-# sys.path.append("../src")
 
 import numpy as np
 import matplotlib.pyplot as plt
 from nnclib.utils import model_dict, reshape_weights
 
+
 def proc_weights(p):
     a = np.argsort(p, axis=0)
     p = np.take_along_axis(p, a, axis=0)
-    norm = np.linalg.norm(p, axis=0)
-    p /= norm
+    # uncomment the following line to skip normalisation
+    p /= np.linalg.norm(p, axis=0)
     fig, ax = plt.subplots()
     ax.plot(p)
     return fig
 
 
 def process(model_name):
-    # model_name = model_info[0]
     print(model_name)
-    # model = model_info[1][0]()
     model = model_dict[model_name][0]()
 
     # skip input layer
@@ -32,11 +34,7 @@ def process(model_name):
         shape = np.shape(weights)
         # print(shape)
         if len(shape) > 1:
-            sh1 = shape[-2]
-            sh0 = shape[-1]
-            for d in shape[:-2]:
-                sh0 *= d
-            weights = np.reshape(weights, [sh0, sh1])
+            weights = reshape_weights(weights)
             fig = proc_weights(weights)
             shape_str = "x".join(map(str, shape))
             typ = str(type(layer))
