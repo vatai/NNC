@@ -1,5 +1,36 @@
+#+OPTIONS: toc:nil ':t
+
 #+TITLE: Experiments for the paper "Compression with insight into layers of deep neural networks"
 
-* Important remark about the code
-Due to an oversight there is a name collision.  There are two "small" values in the paper \delta and \varepsilon.  In the source code they are both referred to as \varepsilon.
-Usually the ~epsilon~ or ~eps~ variables refer to the \delta, and \varepsilon is only dealt with in ~epsilons.py~.
+* The compression method
+  The main idea performed in most of the experiments consists of the following steps (applied to a layers):
+  1. If needed reshape the layer to make it a 2D matrix.
+     A tensor with shape \(d_{1} \times d_{2} \times \cdots \times d_{n-1} \times d_n\) is reshaped into a two dimensional matrix with dimensions \((d_1 \cdot d_2 \cdots d_n) \times d_{n-1}\).
+  2. Sort the rows of the 2D matrix.
+  3. Combine the sorted rows (either into a plot or average them).
+  4. If the rows were averaged, then they will be unsorted.
+* Files/experiments
+** Important remark about the code
+   Due to an oversight there is a name collision.  There are two "small" values in the paper \delta and \varepsilon.  In the source code they are both referred to as \varepsilon.
+   Usually the ~epsilon~ or ~eps~ variables refer to the \delta, and \varepsilon is only dealt with in ~epsilons.py~.
+** ~all_shape_plot.py~
+** ~check_results.py~
+** ~collect_weights.py~
+** ~combined.py~
+** ~epsilons.py~
+** ~make_layer_stats.py~
+** ~normality_analysis.py~
+** ~normality_test.py~
+** ~report_gen2.py~
+** ~report_gen.py~
+** ~s_shape_plot.py~
+* Jupyter notebooks
+  Jupyter notebooks are available in the file:jupyter folder.
+** ~Compare-parameter-number.ipynb~
+** ~layer_analysis-template.ipynb~
+** ~Distributions.ipynb~
+** ~normality_test.ipynb~
+** ~all_layer_graphs.ipynb~
+** ~xception_all_layer_plot.ipynb~
+** ~interesting_shapes.ipynb~
+** ~xception_analysis.ipynb layer_analysis.ipynb~
