@@ -2,35 +2,64 @@
 
 #+TITLE: Experiments for the paper "Compression with insight into layers of deep neural networks"
 
-* The compression method
-  The main idea performed in most of the experiments consists of the following steps (applied to a layers):
-  1. If needed reshape the layer to make it a 2D matrix.
-     A tensor with shape \(d_{1} \times d_{2} \times \cdots \times d_{n-1} \times d_n\) is reshaped into a two dimensional matrix with dimensions \((d_1 \cdot d_2 \cdots d_n) \times d_{n-1}\).
-  2. Sort the rows of the 2D matrix.
-  3. Combine the sorted rows (either into a plot or average them).
-  4. If the rows were averaged, then they will be unsorted.
-* Files/experiments
-** Important remark about the code
-   Due to an oversight there is a name collision.  There are two "small" values in the paper \delta and \varepsilon.  In the source code they are both referred to as \varepsilon.
+* Theory: Neural Network Compression
+   The main idea performed in most of the experiments consists of the following steps (applied to a layers):
+   1. If needed reshape the layer to make it a 2D matrix.
+      A tensor with shape \(d_{1} \times \cdots \times d_{n-2} \times d_{n-1} \times d_n\) is reshaped into a two dimensional matrix with dimensions \((d_{1} \cdots d_{n-2} \cdot d_{n}) \times d_{n-1}\).
+   2. Sort the rows of the 2D matrix.
+   3. Combine the sorted rows (either into a plot or average them).
+   4. If the rows were averaged, then they will be unsorted.
+* Practice
+** Remarks about delta/epsilon variable names
+   *Important remark about the code:* Due to an oversight there is a name collision.  There are two "small" values in the paper \delta and \varepsilon.  In the source code they are both referred to as \varepsilon.
    Usually the ~epsilon~ or ~eps~ variables refer to the \delta, and \varepsilon is only dealt with in ~epsilons.py~.
-** ~all_shape_plot.py~
-** ~check_results.py~
-** ~collect_weights.py~
-** ~combined.py~
-** ~epsilons.py~
-** ~make_layer_stats.py~
-** ~normality_analysis.py~
-** ~normality_test.py~
-** ~report_gen2.py~
-** ~report_gen.py~
-** ~s_shape_plot.py~
-* Jupyter notebooks
-  Jupyter notebooks are available in the file:jupyter folder.
-** ~Compare-parameter-number.ipynb~
-** ~layer_analysis-template.ipynb~
-** ~Distributions.ipynb~
-** ~normality_test.ipynb~
-** ~all_layer_graphs.ipynb~
-** ~xception_all_layer_plot.ipynb~
-** ~interesting_shapes.ipynb~
-** ~xception_analysis.ipynb layer_analysis.ipynb~
+** Sacred experiments
+** Experiments
+*** TODO ~combined.py~
+    Experiment
+*** ~report_gen2.py~ RENAME
+*** ~check_results.py~ DELTHIS
+*** ~report_gen.py~ DELTHIS
+** Normality
+*** ~normality_test.py~
+    Opens a numpy array from the base directory, and outputs a pickle file with the results from the Shapiro test, variance, ?and the row name?.  If do_plot is true also generates a qqplot in bot pdf and png.
+*** ~normality_analysis.py~
+** Utility programs
+*** ~collect_weights.py~ 
+    Used with normality_test.py, s_shape_plot.py
+
+    Input: model_dict
+
+    Output: e.g. vgg16_4_conv2d_3x3x64x128.npy in current directory
+    
+    Only processes Dense and Conv2D layers.
+
+    This program collects the weights of all the conv2d and dense layers to feed it to the jupyter notebook for analysis.
+*** ~s_shape_plot.py~
+*** ~all_shape_plot.py~
+    ??? 
+    Make (normalised) plots for all layers for a given network demonstrating the possibility of compression.
+
+    The plots are saved in the working directory.
+*** ~epsilons.py~
+    Make table of epsilons from weights.  Besically, for each model calculate the max and the average epsilon.
+
+    The max and avg epsilon is the max and avg of the layer epsilon.
+
+    The layer epsilon is the max of the column epsilon.
+
+    The column epsilon is the max - min in the column.
+*** ~make_layer_stats.py~
+    Examine the different layers in the keras_applications pretrained networks.
+
+    The result is a dictionary, with layer name as key, and a list of model names which contain the given layer.
+** Jupyter notebooks
+   Jupyter notebooks are available in the file:jupyter folder.
+*** ~Compare-parameter-number.ipynb~
+*** ~layer_analysis-template.ipynb~
+*** ~Distributions.ipynb~
+*** ~normality_test.ipynb~
+*** ~all_layer_graphs.ipynb~
+*** ~xception_all_layer_plot.ipynb~
+*** ~interesting_shapes.ipynb~
+*** ~xception_analysis.ipynb layer_analysis.ipynb~
