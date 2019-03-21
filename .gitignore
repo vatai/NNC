@@ -7,6 +7,8 @@ report/*/*.pdf
 results
 telegram.json
 *.sif
+*.tex
+*.pdf
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
