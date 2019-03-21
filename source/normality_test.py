@@ -61,12 +61,12 @@ def proc_file(npy_name, do_plot=False):
     dump(result, open(pickle_name, 'wb'))
 
 
+if __name__ == '__main__':
+    pool = Pool()
+    # pool.map(proc_file, npy_names)
 
-pool = Pool()
-#pool.map(proc_file, npy_names)
-
-print("----- ")
-params = map(lambda t: (t, True), sample(npy_names, sample_size))
-pool.starmap(proc_file, params)
-params = [(t, True) for t in npy_dense]
-pool.starmap(proc_file, params)
+    print("----- ")
+    params = map(lambda t: (t, True), sample(npy_names, sample_size))
+    pool.starmap(proc_file, params)
+    params = [(t, True) for t in npy_dense]
+    pool.starmap(proc_file, params)

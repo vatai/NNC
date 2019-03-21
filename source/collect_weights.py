@@ -32,7 +32,7 @@ def proc_model(model):
     return results
 
 
-def write_results(results, name, base="."):
+def write_results(results, name, base="report/weights"):
     for idx, typ, shp, result in results:
         file_name = "{}_{}_{}_{}".format(name, idx, typ, shp)
         file_name = join(base, file_name)
@@ -47,4 +47,5 @@ def proc_all_models():
         write_results(results, name)
 
 
-proc_all_models()
+if __name__ == '__main__':
+    proc_all_models()

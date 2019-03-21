@@ -96,4 +96,5 @@ def proc_all(figs=False):
     make_tables(combined_results)
 
 
-proc_all(True)
+if __name__ == '__main__':
+    proc_all(True)

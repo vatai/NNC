@@ -45,5 +45,6 @@ def process(model_name):
             plt.close(fig)
 
 
-pool = multiprocessing.Pool()
-pool.map(process, model_dict.keys())
+if __name__ == '__main__':
+    pool = multiprocessing.Pool()
+    pool.map(process, model_dict.keys())

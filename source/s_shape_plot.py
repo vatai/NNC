@@ -40,5 +40,6 @@ def proc_all_files(src="report/weights/*"):
     pool.map(proc_file, files)
 
 
-proc_all_files()
-print("Done")
+if __name__ == '__main__':
+    proc_all_files()
+    print("Done")

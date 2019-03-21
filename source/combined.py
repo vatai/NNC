@@ -7,7 +7,7 @@ get_dense_weight_size.py.  It measures accuracy and compression.
 """
 
 import json
-from os.path import expanduser, join, basename
+from os.path import expanduser, join, basename, exists
 import numpy as np
 
 from tensorflow import set_random_seed
@@ -29,14 +29,15 @@ from nnclib.utils import get_results_dir, model_dict, reshape_weights
 EX = Experiment()
 # EX.captured_out_filter = apply_backspaces_and_linefeeds
 EX.observers.append(FileStorageObserver.create(get_results_dir(__file__)))
-EX.observers.append(TelegramObserver.from_config('telegram.json'))
+if exists('telegram.json'):
+    EX.observers.append(TelegramObserver.from_config('telegram.json'))
 
 
 @EX.config
 def config():
     """Config function for the experiment."""
     # pylint: disable=unused-variable
-    model_names = list(model_dict.keys())
+    model_names = ['vgg16']  # list(model_dict.keys())
     compile_args = {'optimizer': 'RMSprop',
                     'loss': 'categorical_crossentropy',
                     'metrics': [categorical_accuracy,
@@ -44,7 +45,7 @@ def config():
     gen_args = {'img_dir': expanduser("~/tmp/ilsvrc/db"),
                 'val_file': expanduser("~/tmp/ilsvrc/caffe_ilsvrc12/val.txt"),
                 'batch_size': 32,
-                'fast_mode': False}
+                'fast_mode': True}
     eval_args = {'max_queue_size': 10,
                  'workers': 4,
                  'use_multiprocessing': True,

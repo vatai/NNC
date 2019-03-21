@@ -11,10 +11,6 @@ from pprint import pprint
 from nnclib.utils import sum_weights
 
 
-all_weights_file="../all_weights.json"
-all_weights = load(open(all_weights_file, 'r'))
-
-
 def collect_data(base='.'):
     """
     Function collect the data in the the current (or `base`)
@@ -183,4 +179,7 @@ def proc_all():
         proc_model(model_info)
 
 
-proc_all()
+if __name__ == '__main__':
+    all_weights_file="../all_weights.json"
+    all_weights = load(open(all_weights_file, 'r'))
+    proc_all()

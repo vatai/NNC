@@ -26,5 +26,6 @@ def proc_all(outfile="all_weights.json"):
     dump(dict(results), open(outfile, 'w'))
 
 
-proc_all()
-print("Done.")
+if __name__ == '__main__':
+    proc_all()
+    print("Done.")

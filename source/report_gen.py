@@ -6,8 +6,6 @@ import json
 import matplotlib.pyplot as plt
 import nnclib.utils
 
-AMMEND = json.load(open('../dense_weights.json'))
-
 
 def compile_results(smooth=0):
     """
@@ -176,5 +174,7 @@ def proc_all_models(smooth=0):
             report_file.writelines(compression_table)
 
 
-proc_all_models(0)
-proc_all_models(1)
+if __name__ == '__main__':
+    AMMEND = json.load(open('../dense_weights.json'))
+    proc_all_models(0)
+    proc_all_models(1)

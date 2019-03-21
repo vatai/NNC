@@ -71,5 +71,6 @@ def proc_all(base="*"):
     return d
 
 
-layer_epsilons = proc_all()
-make_table(layer_epsilons)
+if __name__ == '__main__':
+    layer_epsilons = proc_all()
+    make_table(layer_epsilons)
