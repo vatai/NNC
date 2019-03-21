@@ -17,17 +17,14 @@
   Hola! I hope this is not too strange of a question... how much/often do you have dense layers in your models? To be specific, I am not asking about what percentage of layers are dense layers in your models. I.e. a "usual" image recognition model (vgg, resnet) has (let's say) 100 fancy (conv, rnn) layers and one dense layer at the top, only 1%. But and this is true for 99% percent of image recognition models. I am asking about the 99%, so maybe a better phrasing would be "how many of your projects uses at least one dense layer?"
 * COMMENT Main points
   - hpc + ml = compression
-
 * COMMENT Questions
   - me as an author? UTokyo, ELTE both?
-
 * COMMENT Not to forget
   - Measurements
   - JSPS
   - keras with tf backend, sacred (telegram)
   - github
   - dataset
-    
 * COMMENT Good paper - notes
 ** Abstract
    :PROPERTIES:
