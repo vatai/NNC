@@ -2,7 +2,7 @@
 A program to compare the acurracy of Keras models with and without
 compression.
 
-This combines the compare_with_compression.py and
+This combines the ``compare_with_compression.py`` and
 get_dense_weight_size.py.  It measures accuracy and compression.
 """
 
@@ -13,6 +13,7 @@ import numpy as np
 from tensorflow import set_random_seed
 
 import keras.applications as Kapp
+from keras.utils import multi_gpu_model
 from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
 from keras.layers.core import Dense
 from keras.layers.convolutional import Conv2D
@@ -101,6 +102,7 @@ def proc_model(model_name, proc_args=None):
     # pylint: disable=no-value-for-parameter
     model_cls, preproc_args = model_dict[model_name]
     model = model_cls()
+    model = multi_gpu_model(model, 2)
 
     nzcounts = []
     for layer in model.layers[1:]:
