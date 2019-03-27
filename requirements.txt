@@ -2,3 +2,4 @@ Keras >= 2.2.4
 matplotlib >= 3.0.3
 statsmodels >= 0.9.0
 sacred >= 0.7.4
+tensorflow >= 1.13.1
