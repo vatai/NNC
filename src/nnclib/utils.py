@@ -39,8 +39,8 @@ def get_epsilons(base=".", sort=True):
 
 def reshape_weights(weights):
     """
-    Takes a d1 x d2 x...x dn-1 x dn dimensional tensor, and reshapes
-    it to a d1 * dn-2 * dn x dn-1 dimensional matrix.
+    Takes a \(d_1 x d_2 x...x d_{n-1} x d_n\) dimensional tensor, and
+    reshapes it to a d_1 * d_{n-2} * d_n x d_{n-1} dimensional matrix.
     """ 
     import numpy as np
     shape = np.shape(weights)  # old shape
