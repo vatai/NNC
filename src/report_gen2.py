@@ -26,7 +26,9 @@ def collect_data(base='.'):
         weights = load(open(file.replace('accuracy', 'weights')))
         for model in accuracy.keys():
             # add both accuracy and weights
-            data[tuple(fields+[model])] = accuracy[model] + weights[model]
+            key = tuple(fields + [model])
+            value = accuracy[model] + weights[model]
+            data[key] = value
     return data
 
 

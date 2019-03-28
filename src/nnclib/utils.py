@@ -39,8 +39,9 @@ def get_epsilons(base=".", sort=True):
 
 def reshape_weights(weights):
     """
-    Takes a \(d_1 x d_2 x...x d_{n-1} x d_n\) dimensional tensor, and
-    reshapes it to a d_1 * d_{n-2} * d_n x d_{n-1} dimensional matrix.
+    Takes a :math:`d_1 \\times d_2 \\times \\ldots \\times d_{n-1}
+    \\times d_n` dimensional tensor, and reshapes it to a :math:`d_1
+    \\cdots d_{n-2} \\cdot d_n \\times d_{n-1}` dimensional matrix.
     """ 
     import numpy as np
     shape = np.shape(weights)  # old shape
@@ -55,7 +56,11 @@ def reshape_weights(weights):
 
 
 def sum_weights(pairs):
-    """Calculate the sum of weights from a list of pairs"""
+    """
+    Calculate the sum of weights from a list of pairs.  This function
+    is used to summarise the compression of weights.  It process the
+    output of TODO.
+    """
     total = 0
     for rows, cols in pairs:
         total += rows * cols
