@@ -119,3 +119,4 @@ model_dict = {"xception":
               (Kapp.nasnet.NASNetLarge,
                {'preproc': Kapp.nasnet.preprocess_input,
                 'target_size': 331})}
+"""Model dictionary.  The keys of ``model_dict`` are strings representing the names of pretrained models found in Keras.  The corresponding value of the dictionary, is a tuple, containing the class of the model, and a dictionary containing the information needed for preprocessing, namely the ``preprocess_input`` function, and the target size for resizing the input images."""
