@@ -7,6 +7,31 @@ import keras
 EX = sacred.Experiment()
 
 
+class MyLayer(keras.layers.Layer):
+
+    def __init__(self, output_dim, **kwargs):
+        self.output_dim = output_dim
+        super(MyLayer, self).__init__(**kwargs)
+
+
+    def build(self, input_shape):
+        self.kernel = self.add_weight(name='kernel',
+                                      shape=(input_shape[1], self.output_dim),
+                                      initializer='uniform',
+                                      trainable=True)
+        self.bias = self.add_weight(name='bias',
+                                    shape=(self.output_dim),
+                                    initializer='uniform',
+                                    trainable=True)
+        super(MyLayer, self).build(input_shape)
+
+    def call(self, x):
+        return K.add(K.dot(x, self.kernel), self.bias)
+
+    def compute_output_shape(self, input_shape):
+        return (input_shape[0], self.output_dim)
+
+
 @EX.config
 def config():
     compile_args = {'optimizer': 'RMSprop',
@@ -23,27 +48,6 @@ def config():
                  'verbose': True}
     # proc_args = {'norm': 0, 'epsilon': 0, 'dense_smooth': 0, 'conv_smooth': 0, 'quantization': 0}
     seed = 42
-
-
-class MyLayer(keras.layers.Layer):
-
-    def __init__(self, output_dim, **kwargs):
-        self.output_dim = output_dim
-        super(MyLayer, self).__init__(**kwargs)
-
-
-    def build(self, input_shape):
-        self.kernel = self.add_weight(name='kernel',
-                                      shape=(input_shape[1], self.output_dim),
-                                      initializer='uniform',
-                                      trainable=True)
-        super(MyLayer, self).build(input_shape)
-
-    def call(self, x):
-        return K.dot(x, self.kernel)
-
-    def compute_output_shape(self, input_shape):
-        return (input_shape[0], self.output_dim)
 
 
 @EX.automain
