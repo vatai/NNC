@@ -20,11 +20,11 @@ Indices and tables
 * :ref:`search`
 
 
-My own section
-==============
+Main experiment
+===============
 
 :ref:`combined-module`
-combined module
+
 
 TODO list
 =========
