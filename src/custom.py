@@ -28,21 +28,17 @@ def config():
     seed = 42
 
 
-def my_init(shape, dtype=None):
-    # print('>>> ', shape)
-    # print('>>> ', np.zeros(shape=shape))
-    return K.variable(np.zeros(shape=shape), dtype='int32')
-
-
 class MyLayer(keras.layers.Layer):
     """Implementation of a custom, compressed dense layer.
 
-    The layer implements a simple Ax + b linear transformation.  The
+    The layer implements a simple xA + b linear transformation.  The
     bias ``b`` is implemented as usual.
 
     In this implementation, the ``A`` matrix is stored as a matrix of
-    indices and a vector which is per column mean of the rows of
-    ``A``.  If ``A`` has shape ``(in_dim, out_dim)``, then
+    ``indices`` and a vector which is per column ``mean`` of the rows
+    of ``A``.  If ``A`` has shape ``(in_dim, out_dim)``, then
+    ``indices`` have the same shape, and ``mean`` has ``(in_dim,)``
+    shape.
 
     """
 
@@ -51,39 +47,36 @@ class MyLayer(keras.layers.Layer):
         super(MyLayer, self).__init__(**kwargs)
 
     def build(self, input_shape):
-        # kernel
-        self.kernel = self.add_weight(name='kernel',
-                                      shape=(input_shape[1], self.output_dim),
-                                      initializer='uniform',
-                                      trainable=True)
-        # bias
-        initializer = keras.initializers.get('uniform')
-        self.bias = self.add_weight(name='bias',
-                                    shape=(self.output_dim, ),
-                                    initializer=initializer,
-                                    trainable=True)
+
+        def my_init(shape, dtype=None):
+            return K.variable(np.zeros(shape=shape), dtype='int32')
+
         # indices
-        ##### HEREEEEEE ######
         initializer = my_init
         self.indices = self.add_weight(name='indices',
                                        dtype='int32',
                                        shape=(input_shape[1], self.output_dim),
                                        initializer=initializer,
                                        trainable=False)
+        # mean
         self.mean = self.add_weight(name='mean',
                                     shape=(input_shape[1], ),
                                     initializer='uniform',
                                     trainable=False)
+        # bias
+        initializer = keras.initializers.get('uniform')
+        self.bias = self.add_weight(name='bias',
+                                    shape=(self.output_dim, ),
+                                    initializer=initializer,
+                                    trainable=True)
+
         super(MyLayer, self).build(input_shape)
         self.built = True
 
     def call(self, inputs):
         import tensorflow
-        unsort_module = tensorflow.load_op_library('./src/unsortOp/_unsort_ops.so')
-
-        ######## HEREEEEEE ######
-        # output = unsort_module.unsort(self.indices, self.mean)
-        output = K.dot(inputs, self.kernel)
+        unsort_module = tensorflow.load_op_library('./src/unsortOp/unsort_ops.so')
+        output = unsort_module.unsort(inputs, self.indices, self.mean)
         return K.bias_add(output, self.bias, data_format='channels_last')
 
     def compute_output_shape(self, input_shape):
@@ -95,9 +88,8 @@ def get_new_weights(weights):
     """Args:
 
         weights (tuple): The weights of a dense layer, containing:
-
-        - ``kernel`` with shape ``(in_dim, out_dim)``
-        - ``bias`` with shape ``(out_dim, )``
+        ``kernel`` with shape ``(in_dim, out_dim)``; ``bias`` with shape
+        ``(out_dim, )``
     
     Returns: list: ``[indices, mean, bias]`` where ``bias`` is the
        original bias, and the ``kernel`` can be approximated using
@@ -106,9 +98,11 @@ def get_new_weights(weights):
     """
     kernel, bias = weights
     out_dim, in_dim = kernel.shape
-    indices = np.argsort(shape=(in_dim, out_dim))
-    mean = np.mean()
-    return [indices, mean, bias]
+    indices = np.argsort(kernel, axis=0)
+
+    sorted_kernel = np.take_along_axis(kernel, indices, 0)
+    mean = np.mean(sorted_kernel, axis=1)
+    return [bias, indices, mean]
 
 
 @EX.automain
@@ -126,21 +120,19 @@ def main(compile_args, gen_args, eval_args):
                             outputs=new_outputs)
     new_last = new_model.layers[-1]
     new_weights = new_last.get_weights()
+    pprint(list(map(np.shape, new_weights)))
 
-    new_weights[0] = weights[0].copy()
-    new_weights[1] = weights[1].copy()
-    # new_weights =
-    get_new_weights(weights)
-    # new_last.set_weights(new_weights)
+    new_weights = get_new_weights(weights)
+    pprint(list(map(np.shape, new_weights)))
     new_last.set_weights(new_weights)
 
     model.compile(**compile_args)
     new_model.compile(**compile_args)
     generator = CropGenerator(**gen_args)
 
-    result = model.evaluate_generator(generator, **eval_args)
-    print("Evaluation results:")
-    print(result)
+    # result = model.evaluate_generator(generator, **eval_args)
+    # print("Evaluation results:")
+    # print(result)
 
     new_result = new_model.evaluate_generator(generator, **eval_args)
     print("NEW Evaluation results:")
