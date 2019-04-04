@@ -3,8 +3,6 @@
 #include <tensorflow/core/framework/common_shape_fns.h>
 #include <tensorflow/core/framework/op_kernel.h>
 
-#include <iostream>
-
 using namespace tensorflow;
 
 REGISTER_OP("Unsort")
@@ -36,23 +34,20 @@ public:
     const int64 in_dim = indices_tensor.dim_size(0);
     const int64 out_dim = indices_tensor.dim_size(1);
 
-    std::cout << ">>>>> batch_size: " << batch_size << ", "
-              << "in_dim: " << in_dim << ", "
-              << "out_dim: " << out_dim
-              << std::endl;
-
     // Create an output tensor
     Tensor* outputs_tensor = NULL;
 
     const TensorShape output_shape = TensorShape({batch_size, out_dim});
     OP_REQUIRES_OK(context, context->allocate_output(0, output_shape,
                                                      &outputs_tensor));
-    std::cout << ">>>> output allocated" << std::endl;
-    
     auto inputs_matrix = inputs_tensor.matrix<float>();
     auto indices_matrix = indices_tensor.matrix<int32>();
     auto mean_flat = mean_tensor.flat<float>();
     auto outputs_matrix = outputs_tensor->matrix<float>();
+
+    for (size_t sample_idx = 0; sample_idx < batch_size; sample_idx++)
+      for (size_t i = 0; i < out_dim; i++)
+        outputs_matrix(sample_idx, i);
 
     for (size_t sample_idx = 0; sample_idx < batch_size; sample_idx++)
       for (size_t i = 0; i < in_dim; i++)
@@ -61,7 +56,6 @@ public:
                              mean_flat(indices_matrix(i, j));
           outputs_matrix(sample_idx, i) += prod;
         }
-    std::cout << ">>>> DONE" << std::endl;
   }
 };
 
