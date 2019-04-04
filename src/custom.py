@@ -73,9 +73,10 @@ class MyLayer(keras.layers.Layer):
         super(MyLayer, self).build(input_shape)
         self.built = True
 
-    def call(self, inputs):
+    def call(self, inputs, **kwargs):
         import tensorflow
-        unsort_module = tensorflow.load_op_library('./src/unsortOp/unsort_ops.so')
+        so_name = './src/unsortOp/unsort_ops.so'
+        unsort_module = tensorflow.load_op_library(so_name)
         output = unsort_module.unsort(inputs, self.indices, self.mean)
         return K.bias_add(output, self.bias, data_format='channels_last')
 
@@ -107,7 +108,8 @@ def get_new_weights(weights):
 
 @EX.automain
 def main(compile_args, gen_args, eval_args):
-    model = keras.applications.vgg16.VGG16()
+    # model = keras.applications.vgg16.VGG16()
+    model = keras.applications.resnet50.ResNet50()
     last = model.layers[-1]
     weights = last.get_weights()
 
@@ -130,9 +132,9 @@ def main(compile_args, gen_args, eval_args):
     new_model.compile(**compile_args)
     generator = CropGenerator(**gen_args)
 
-    # result = model.evaluate_generator(generator, **eval_args)
-    # print("Evaluation results:")
-    # print(result)
+    result = model.evaluate_generator(generator, **eval_args)
+    print("Evaluation results:")
+    print(result)
 
     new_result = new_model.evaluate_generator(generator, **eval_args)
     print("NEW Evaluation results:")
