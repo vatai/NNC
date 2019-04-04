@@ -28,27 +28,33 @@ public:
 
   void Compute(OpKernelContext* context) override {
     // Grab the input tensor
-    const Tensor& input_tensor = context->input(0);
-    auto input = input_tensor.flat<float>();
+    const Tensor& inputs_tensor = context->input(0);
+    const Tensor& indices_tensor = context->input(1);
+    const Tensor& mean_tensor = context->input(2);
+
+    //// auto input = input_tensor.flat<float>();
+
+    std::cout << ">>>> input tensors created" << std::endl;
+
+    const int64 batch_size = inputs_tensor.dim_size(0);
+    const int64 out_dim = indices_tensor.dim_size(1);
+
+    std::cout << ">>>>> batch_size, out_dim: "
+              << batch_size << ", "
+              << out_dim << std::endl;
 
     // Create an output tensor
     Tensor* output_tensor = NULL;
-    std::cout << ">>>> HELLO" << std::endl;
-    std::cout << ">>>> INPUT SHAPE" << input_tensor.shape().dims() << std::endl;
-    auto output_shape = TensorShape();
+
+    const TensorShape output_shape = TensorShape({batch_size, out_dim});
     OP_REQUIRES_OK(context, context->allocate_output(0, output_shape,
-                                                       &output_tensor));
-    auto output_flat = output_tensor->flat<int32>();
+                                                     &output_tensor));
+    std::cout << ">>>> output allocated" << std::endl;
+    //// auto output_flat = output_tensor->flat<float>();
+    
 
-    // Set all but the first element of the output tensor to 0.
-    const int N = input.size();
-    for (int i = 1; i < N; i++) {
-      output_flat(i) = 0;
-    }
-
-    // Preserve the first input value if possible.
-    if (N > 0) output_flat(0) = input(0);
+    std::cout << ">>>> DONE" << std::endl;
   }
 };
 
-            REGISTER_KERNEL_BUILDER(Name("Unsort").Device(DEVICE_CPU), UnsortOp);
+REGISTER_KERNEL_BUILDER(Name("Unsort").Device(DEVICE_CPU), UnsortOp);
