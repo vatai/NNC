@@ -13,14 +13,43 @@ def shape_print(x):
     print(K.int_shape(x))
 
 
-a = K.variable(np.array([[1.2, 3.4],
-                         [2.3, 4.5],
-                         [9.9, 7.7]]))
-b = K.variable(np.array([[0, 1], [1, 0]], dtype=np.int16), dtype='int32')
-c = K.variable(np.array([10, 20]))
-output = unsort_module.unsort(a, b, c)
+def decompose(weights):
+    indices = np.argsort(weights, axis=0)
+    sorted_weights = np.take_along_axis(weights, indices, axis=0)
+    mean = np.mean(sorted_weights, axis=1)
+    return indices, mean
 
-eval_print(a)
-eval_print(b)
+weights = np.array([[10, 19],
+                    [21, 10]])
+indices, mean = decompose(weights)
+indices_tensor = K.variable(indices, dtype='int32')
+mean_tensor = K.variable(mean)
+
+inputs = np.array([[1.2, 3.4],
+                   [2.3, 4.5],
+                   [9.9, 7.7]])
+inputs_tensor = K.variable(inputs)
+
+output = unsort_module.unsort(inputs_tensor,
+                              indices_tensor,
+                              mean_tensor)
+
+print("inputs")
+print(inputs)
+
+print("weights")
+print(weights)
+
+print("indices")
+print(indices)
+
+print("mean")
+print(mean)
+
+exact_output = np.dot(inputs, weights)
+print("exact_output")
+print(exact_output)
+
+print('output')
 eval_print(output)
-shape_print(output)
+

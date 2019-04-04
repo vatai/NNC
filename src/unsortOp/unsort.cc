@@ -32,27 +32,35 @@ public:
     const Tensor& indices_tensor = context->input(1);
     const Tensor& mean_tensor = context->input(2);
 
-    //// auto input = input_tensor.flat<float>();
-
-    std::cout << ">>>> input tensors created" << std::endl;
-
     const int64 batch_size = inputs_tensor.dim_size(0);
+    const int64 in_dim = indices_tensor.dim_size(0);
     const int64 out_dim = indices_tensor.dim_size(1);
 
-    std::cout << ">>>>> batch_size, out_dim: "
-              << batch_size << ", "
-              << out_dim << std::endl;
+    std::cout << ">>>>> batch_size: " << batch_size << ", "
+              << "in_dim: " << in_dim << ", "
+              << "out_dim: " << out_dim
+              << std::endl;
 
     // Create an output tensor
-    Tensor* output_tensor = NULL;
+    Tensor* outputs_tensor = NULL;
 
     const TensorShape output_shape = TensorShape({batch_size, out_dim});
     OP_REQUIRES_OK(context, context->allocate_output(0, output_shape,
-                                                     &output_tensor));
+                                                     &outputs_tensor));
     std::cout << ">>>> output allocated" << std::endl;
-    //// auto output_flat = output_tensor->flat<float>();
     
+    auto inputs_matrix = inputs_tensor.matrix<float>();
+    auto indices_matrix = indices_tensor.matrix<int32>();
+    auto mean_flat = mean_tensor.flat<float>();
+    auto outputs_matrix = outputs_tensor->matrix<float>();
 
+    for (size_t sample_idx = 0; sample_idx < batch_size; sample_idx++)
+      for (size_t i = 0; i < in_dim; i++)
+        for (size_t j = 0; j < out_dim; j++) {
+          const float prod = inputs_matrix(sample_idx, j) *
+                             mean_flat(indices_matrix(i, j));
+          outputs_matrix(sample_idx, i) += prod;
+        }
     std::cout << ">>>> DONE" << std::endl;
   }
 };
