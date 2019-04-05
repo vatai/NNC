@@ -1,5 +1,5 @@
-from pprint import pprint
 import os
+from pprint import pprint
 import numpy as np
 import sacred
 import keras
@@ -103,13 +103,13 @@ def get_new_weights(weights):
 
     sorted_kernel = np.take_along_axis(kernel, indices, 0)
     mean = np.mean(sorted_kernel, axis=1)
-    return [bias, indices, mean]
+    return [bias, np.argsort(indices, axis=0), mean]
 
 
 @EX.automain
 def main(compile_args, gen_args, eval_args):
-    # model = keras.applications.vgg16.VGG16()
-    model = keras.applications.resnet50.ResNet50()
+    model = keras.applications.vgg16.VGG16()
+    # model = keras.applications.resnet50.ResNet50()
     last = model.layers[-1]
     weights = last.get_weights()
 
@@ -118,8 +118,7 @@ def main(compile_args, gen_args, eval_args):
     my_layer = MyLayer(output_dim)
     new_outputs = my_layer(fc.output)
 
-    new_model = keras.Model(inputs=model.input,
-                            outputs=new_outputs)
+    new_model = keras.Model(inputs=model.input, outputs=new_outputs)
     new_last = new_model.layers[-1]
     new_weights = new_last.get_weights()
     pprint(list(map(np.shape, new_weights)))

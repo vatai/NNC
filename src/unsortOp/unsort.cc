@@ -45,17 +45,22 @@ public:
     auto mean_flat = mean_tensor.flat<float>();
     auto outputs_matrix = outputs_tensor->matrix<float>();
 
+    // Initial performance thoughts:
+    // - Do we need to clear the allocated outputs_tensor?
+    // - Is the memory accessed in the correct pattern?
     for (size_t sample_idx = 0; sample_idx < batch_size; sample_idx++)
       for (size_t i = 0; i < out_dim; i++)
-        outputs_matrix(sample_idx, i);
+        outputs_matrix(sample_idx, i) = 0;
 
-    for (size_t sample_idx = 0; sample_idx < batch_size; sample_idx++)
-      for (size_t i = 0; i < in_dim; i++)
-        for (size_t j = 0; j < out_dim; j++) {
-          const float prod = inputs_matrix(sample_idx, j) *
+    for (size_t sample_idx = 0; sample_idx < batch_size; sample_idx++) {
+      for (size_t i = 0; i < in_dim; i++) { // in_dim == 3
+        for (size_t j = 0; j < out_dim; j++) { // out_dim == 2
+          const float prod = inputs_matrix(sample_idx, i) *
                              mean_flat(indices_matrix(i, j));
-          outputs_matrix(sample_idx, i) += prod;
+          outputs_matrix(sample_idx, j) += prod;
         }
+      }
+    }
   }
 };
 
