@@ -1,7 +1,8 @@
-"""An experiment to compare the acurracy of Keras models with and
+"""
+.. Referenced in: ``custom_layer_test.py``.
+
+An experiment to compare the acurracy of Keras models with and
 without compression.
-
-
 
 Args:
     model_names (list of strings): A list of model names corresponding to the
@@ -209,12 +210,13 @@ def evaluate(model, preproc_args, compile_args, gen_args, eval_args):
     """Evaluate model.
 
     Args:
+
         model (model): the model (instantiated) which is to be
-        evaluated.  preproc_args (dictionary): provided by the second
-        element of values in :py:data:`nnclib.utils.model_dict`.
-        compile_args (dictionary): see :py:mod:`combined`.  gen_args
-        (dictionary): see :py:mod:`combined`.  eval_args (dictionary):
-        see :py:mod:`combined`.
+            evaluated.  preproc_args (dictionary): provided by the second
+            element of values in :py:data:`nnclib.utils.model_dict`.
+            compile_args (dictionary): see :py:mod:`combined`.  gen_args
+            (dictionary): see :py:mod:`combined`.  eval_args (dictionary):
+            see :py:mod:`combined`.
 
     """
     model.compile(**compile_args)

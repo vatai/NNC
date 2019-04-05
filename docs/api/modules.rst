@@ -10,6 +10,8 @@ src
    check_results
    collect_weights
    combined
+   custom
+   custom_mini
    epsilons
    make_layer_stats
    nnclib
