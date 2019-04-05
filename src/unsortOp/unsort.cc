@@ -27,27 +27,28 @@ public:
   void Compute(OpKernelContext* context) override {
     // Grab the input tensor
     const Tensor& inputs_tensor = context->input(0);
-    const Tensor& indices_tensor = context->input(1);
-    const Tensor& mean_tensor = context->input(2);
-
     const int64 batch_size = inputs_tensor.dim_size(0);
+    auto inputs_matrix = inputs_tensor.matrix<float>();
+
+    const Tensor& indices_tensor = context->input(1);
     const int64 in_dim = indices_tensor.dim_size(0);
     const int64 out_dim = indices_tensor.dim_size(1);
-
-    // Create an output tensor
-    Tensor* outputs_tensor = NULL;
-
-    const TensorShape output_shape = TensorShape({batch_size, out_dim});
-    OP_REQUIRES_OK(context, context->allocate_output(0, output_shape,
-                                                     &outputs_tensor));
-    auto inputs_matrix = inputs_tensor.matrix<float>();
     auto indices_matrix = indices_tensor.matrix<int32>();
+
+    const Tensor& mean_tensor = context->input(2);
     auto mean_flat = mean_tensor.flat<float>();
+
+    Tensor* outputs_tensor = NULL;
+    const TensorShape outputs_shape = TensorShape({batch_size, out_dim});
+    OP_REQUIRES_OK(context, context->allocate_output(0, outputs_shape,
+                                                     &outputs_tensor));
     auto outputs_matrix = outputs_tensor->matrix<float>();
 
     // Initial performance thoughts:
     // - Do we need to clear the allocated outputs_tensor?
     // - Is the memory accessed in the correct pattern?
+
+    // Clear outputs_tensor
     for (size_t sample_idx = 0; sample_idx < batch_size; sample_idx++)
       for (size_t i = 0; i < out_dim; i++)
         outputs_matrix(sample_idx, i) = 0;
