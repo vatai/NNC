@@ -1,10 +1,8 @@
-import numpy as np
-import tensorflow
-import keras.backend as K
+"""
+.. todo::
 
-unsort_module = tensorflow.load_op_library('./src/unsortOp/unsort_ops.so')
-
-
+    Rename the other one to ``custom_op_test.py``.
+"""
 def eval_print(x):
     print(K.eval(x))
 
@@ -20,40 +18,46 @@ def decompose(weights):
     return np.argsort(indices, axis=0), mean
 
 
-# inputs = np.random.randn(4, 3)
-inputs = np.array([[ 0.71238331,  1.38283577,  0.37231196],
-                   [ 0.08651744, -1.05230163,  1.00697538],
-                   [-1.56814483, -0.30826115, -0.13245332],
-                   [-0.55250484, -1.53117801,  1.65068967]])
-inputs_tensor = K.variable(inputs)
+if __name__ == '__main__':
+    import numpy as np
+    import tensorflow
+    import keras.backend as K
+    unsort_module = tensorflow.load_op_library('./src/unsortOp/unsort_ops.so')
 
-weights = np.array([[-0.5, 0.5],
-                    [0.5, -0.5],
-                    [0.0, 0]])
-indices, mean = decompose(weights)
-indices_tensor = K.variable(indices, dtype='int32')
-mean_tensor = K.variable(mean)
+    # inputs = np.random.randn(4, 3)
+    inputs = np.array([[ 0.71238331,  1.38283577,  0.37231196],
+                    [ 0.08651744, -1.05230163,  1.00697538],
+                    [-1.56814483, -0.30826115, -0.13245332],
+                    [-0.55250484, -1.53117801,  1.65068967]])
+    inputs_tensor = K.variable(inputs)
 
-output = unsort_module.unsort(inputs_tensor,
-                              indices_tensor,
-                              mean_tensor)
+    weights = np.array([[-0.5, 0.5],
+                        [0.5, -0.5],
+                        [0.0, 0]])
+    indices, mean = decompose(weights)
+    indices_tensor = K.variable(indices, dtype='int32')
+    mean_tensor = K.variable(mean)
 
-print("inputs")
-print(inputs)
+    output = unsort_module.unsort(inputs_tensor,
+                                indices_tensor,
+                                mean_tensor)
 
-print("weights")
-print(weights)
+    print("inputs")
+    print(inputs)
 
-print("indices")
-print(indices)
+    print("weights")
+    print(weights)
 
-print("mean")
-print(mean)
+    print("indices")
+    print(indices)
 
-exact_output = np.dot(inputs, weights)
-print("exact_output")
-print(exact_output)
+    print("mean")
+    print(mean)
 
-print('output')
-eval_print(output)
+    exact_output = np.dot(inputs, weights)
+    print("exact_output")
+    print(exact_output)
+
+    print('output')
+    eval_print(output)
 
