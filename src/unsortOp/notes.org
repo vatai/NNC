@@ -1,0 +1,5 @@
+* Good source: https://github.com/tensorflow/custom-op
+* TODOs [0/3]
+** TODO Makefile
+** TODO Make nice pythonop
+** TODO Adjust directory structure
