@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the custom op and run custom.py.
+# Build the custom op and run custom_layer_op.py.
 # Optionally run with $optirun.
 # Take care of LD_LIBRARY_PATH bug.
 # Take care of multiple GPUs with CUDA_VISIBLE_DEVICES
