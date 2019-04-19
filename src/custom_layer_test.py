@@ -21,7 +21,6 @@ Args:
 """
 
 import os
-from pprint import pprint
 import numpy as np
 import sacred
 import keras
@@ -30,6 +29,7 @@ import keras.backend as K
 from nnclib.generators import CropGenerator
 
 EX = sacred.Experiment()
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
 
 @EX.config
 def config():

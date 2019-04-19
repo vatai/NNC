@@ -1,5 +1,3 @@
-.. _src:
-
 src
 ===
 
@@ -10,8 +8,8 @@ src
    check_results
    collect_weights
    combined
-   custom
-   custom_mini
+   custom_layer_test
+   custom_op_test
    epsilons
    make_layer_stats
    nnclib
