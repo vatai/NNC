@@ -13,18 +13,30 @@
 ** Remarks about delta/epsilon variable names
    *Important remark about the code:* Due to an oversight there is a name collision.  There are two "small" values in the paper \delta and \varepsilon.  In the source code they are both referred to as \varepsilon.
    Usually the ~epsilon~ or ~eps~ variables refer to the \delta, and \varepsilon is only dealt with in ~epsilons.py~.
-** Sacred experiments
 ** Experiments
 *** TODO ~combined.py~
     Experiment
-*** ~report_gen2.py~ RENAME
-*** ~check_results.py~ DELTHIS
-*** ~report_gen.py~ DELTHIS
-** Normality
+** Reports
+*** ~epsilons.py~
+    Make table of epsilons from weights.  Besically, for each model calculate the max and the average epsilon.
+
+    The max and avg epsilon is the max and avg of the layer epsilon.
+
+    The layer epsilon is the max of the column epsilon.
+
+    The column epsilon is the max - min in the column.
+*** ~normality_analysis.py~
 *** ~normality_test.py~
     Opens a numpy array from the base directory, and outputs a pickle file with the results from the Shapiro test, variance, ?and the row name?.  If do_plot is true also generates a qqplot in bot pdf and png.
-*** ~normality_analysis.py~
+*** ~report_gen.py~
+*** ~s_shape_plot.py~
 ** Utility programs
+*** ~all_shape_plot.py~
+    ??? 
+    Make (normalised) plots for all layers for a given network demonstrating the possibility of compression.
+
+    The plots are saved in the working directory.
+*** ~collect_dense_and_conv2d_weights.py~
 *** ~collect_weights.py~ 
     Used with normality_test.py, s_shape_plot.py
 
@@ -35,20 +47,6 @@
     Only processes Dense and Conv2D layers.
 
     This program collects the weights of all the conv2d and dense layers to feed it to the jupyter notebook for analysis.
-*** ~s_shape_plot.py~
-*** ~all_shape_plot.py~
-    ??? 
-    Make (normalised) plots for all layers for a given network demonstrating the possibility of compression.
-
-    The plots are saved in the working directory.
-*** ~epsilons.py~
-    Make table of epsilons from weights.  Besically, for each model calculate the max and the average epsilon.
-
-    The max and avg epsilon is the max and avg of the layer epsilon.
-
-    The layer epsilon is the max of the column epsilon.
-
-    The column epsilon is the max - min in the column.
 *** ~make_layer_stats.py~
     Examine the different layers in the keras_applications pretrained networks.
 
