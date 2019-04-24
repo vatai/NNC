@@ -61,3 +61,10 @@
 *** ~xception_all_layer_plot.ipynb~
 *** ~interesting_shapes.ipynb~
 *** ~xception_analysis.ipynb layer_analysis.ipynb~
+* COMMENT Notes
+  #+BEGIN_SRC python
+    def run_experiment(modeifier, model_name, data_):
+        model = build_model(model_name, maybe_data)
+        train, val, test = get_data(which_data, maybe_model)
+        model
+  #+END_SRC
