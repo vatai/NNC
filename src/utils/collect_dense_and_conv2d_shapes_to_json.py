@@ -12,7 +12,7 @@ from keras.layers.core import Dense
 from nnclib.model_dict import model_dict
 from nnclib.utils import reshape_weights
 
-JSON = "dense_weights.json"
+JSON = "dense_and_conv2d_kernel_shapes.json"
 
 
 def proc(name):
