@@ -16,25 +16,6 @@ def get_results_dir(file, base="."):
     return os.path.join(base, results_dir)
 
 
-def get_epsilons(base=".", sort=True):
-    """
-    Returns an iterable, based on the files in the base directory
-    containing the exponents.
-    """
-    from glob import glob
-
-    files = glob('eval_*.json')
-    if not files:
-        print("No eval_*.json files.")
-        raise UserWarning
-
-    # This should be basically returned
-    epsilons = map(lambda t: float(t[t.find('eps') + 3: -5]), files)
-    if sort:
-        epsilons = sorted(epsilons)
-    return epsilons
-
-
 def reshape_weights(weights):
     """
     Takes a :math:`d_1 \\times d_2 \\times \\ldots \\times d_{n-1}

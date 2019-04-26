@@ -4,7 +4,25 @@ Generate an org file with containing with the right needed images.
 
 import json
 import matplotlib.pyplot as plt
-import nnclib.utils
+
+
+def get_epsilons(base=".", sort=True):
+    """
+    Returns an iterable, based on the files in the base directory
+    containing the exponents.
+    """
+    from glob import glob
+
+    files = glob('eval_*.json')
+    if not files:
+        print("No eval_*.json files.")
+        raise UserWarning
+
+    # This should be basically returned
+    epsilons = map(lambda t: float(t[t.find('eps') + 3: -5]), files)
+    if sort:
+        epsilons = sorted(epsilons)
+    return epsilons
 
 
 def compile_results(smooth=0):
@@ -21,7 +39,7 @@ def compile_results(smooth=0):
         - the weights files
     """
 
-    epsilons = nnclib.utils.get_epsilons()
+    epsilons = get_epsilons()
     all_results = {}
 
     # read the gold file
