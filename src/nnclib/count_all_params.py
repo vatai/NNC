@@ -5,7 +5,8 @@ files.
 
 from json import dump
 from multiprocessing import Pool
-from utils import model_dict
+
+from model_dict import model_dict
 
 
 def proc_model(params):

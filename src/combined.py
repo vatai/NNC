@@ -6,7 +6,7 @@ without compression.
 
 Args:
     model_names (list of strings): A list of model names corresponding to the
-        keys of :py:data:`nnclib.utils.model_dict`.
+        keys of :py:data:`nnclib.model_dict.model_dict`.
 
     compile_args (dictionary): The dictionary of parameters for model
         compilation such as ``optimizer`` (default value: ``'RMSprop'``),
@@ -69,26 +69,27 @@ The entry point of the experiment is :py:func:`proc_all_models`.
 
    Finish experiment description.
 """
+# flake8: noqa: F841
 
-import json
 from os.path import expanduser, join, basename, exists
+import json
 import numpy as np
 
 from tensorflow import set_random_seed
 
-import keras.applications as Kapp
-from keras.utils import multi_gpu_model
-from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
-from keras.layers.core import Dense
 from keras.layers.convolutional import Conv2D
+from keras.layers.core import Dense
+from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
+from keras.utils import multi_gpu_model
 
-from sacred import Experiment
 # from sacred.utils import apply_backspaces_and_linefeeds # for progressbars
+from sacred import Experiment
 from sacred.observers import FileStorageObserver
 from sacred.observers import TelegramObserver
 
 from nnclib.generators import CropGenerator
-from nnclib.utils import get_results_dir, model_dict, reshape_weights
+from nnclib.model_dict import model_dict
+from nnclib.utils import get_results_dir, reshape_weights
 
 
 EX = Experiment()

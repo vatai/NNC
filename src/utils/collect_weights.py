@@ -4,10 +4,13 @@ to feed it to the jupyter notebook for analysis.
 """
 
 from os.path import join
-from nnclib.utils import model_dict, reshape_weights
-import numpy as np
-from keras.layers.core import Dense
+
 from keras.layers.convolutional import Conv2D
+from keras.layers.core import Dense
+import numpy as np
+
+from nnclib.model_dict import model_dict
+from nnclib.utils import reshape_weights
 
 
 def proc_layer(layer):

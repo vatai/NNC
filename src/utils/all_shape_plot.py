@@ -6,9 +6,11 @@ The plots are saved in the working directory.
 """
 import multiprocessing
 
-import numpy as np
 import matplotlib.pyplot as plt
-from nnclib.utils import model_dict, reshape_weights
+import numpy as np
+
+from nnclib.model_dict import model_dict
+from nnclib.utils import reshape_weights
 
 
 def proc_weights(p):

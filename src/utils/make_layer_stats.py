@@ -7,7 +7,7 @@ model names which contain the given layer.
 """
 
 from pickle import dump
-from nnclib.utils import model_dict
+from nnclib.model_dict import model_dict
 
 if __name__ == '__main__':
     stats = {}
