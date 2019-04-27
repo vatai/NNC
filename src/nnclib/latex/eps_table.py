@@ -11,8 +11,9 @@ Notes:
 -
 """
 
+from concurrent.futures import ProcessPoolExecutor
+from itertools import repeat
 import os
-from multiprocessing import Pool
 
 import numpy as np
 
@@ -23,10 +24,9 @@ def _get_eps_kernel(file_name):
     sorted_weights = np.sort(weights, axis=0) / norms
 
     mean = np.mean(sorted_weights,
-                    axis=1)[:, np.newaxis]
+                   axis=1)[:, np.newaxis]
     layer_epsilons = np.abs(sorted_weights - mean)
     key = os.path.basename(file_name)
-    # data[key] = layer_epsilons
     return (key, layer_epsilons)
 
 
@@ -54,12 +54,8 @@ def get_epsilons_dict(model_name,
     file_list = glob(pattern)
 
     data = {}
-    # for file_name in file_list:
-
-
-    pool = Pool()
-    results = pool.map(_get_eps_kernel, file_list)
-    data.update(results)
+    with ProcessPoolExecutor() as executor:
+        data.update(executor.map(_get_eps_kernel, file_list))
     return data
 
 
@@ -95,15 +91,19 @@ def _apply_fn_list(weights, fn_list):
     return fn_list[0](weights)
 
 
-def _measure(model_names, fn_lists):
-    output = {}
-    for model_name in model_names:
-        output[model_name] = []
+def _measure_kernel(model_name, fn_lists):
         data = get_epsilons_dict(model_name)
         data = data.values()
         partial = lambda t: _apply_fn_list(data, t)
         result = list(map(partial, fn_lists))
-        output[model_name] = result
+        return (model_name, result)
+
+
+def _measure(model_names, fn_lists):
+    output = {}
+    args = ((n, fn_lists) for n in model_names)
+    with ProcessPoolExecutor() as executor:
+        output.update(executor.map(_measure_kernel, model_names, repeat(fn_lists)))
     return output
 
 
@@ -138,22 +138,22 @@ def eps_table(model_names, measure, force=False):
     if force or not os.path.exists(file_name):
         fn_lists, header_list = zip(*measure)
         result = _measure(model_names, fn_lists)
-        out = _latexify(result, header_list)
+        output = _latexify(result, header_list)
         with open(file_name, 'w') as file:
-            file.write(out)
-        return out
+            file.write(output)
+        return output
     else:
         return open(file_name, 'r').read()
 
 
 if __name__ == "__main__":
-    model_names = ['xception', 'vgg16', 'vgg19']
-    fns = [
+    MODELS = ['xception', 'vgg16', 'vgg19']
+    FNS = [
         (['min'],     '$\\min$'),
         (['max'],     '$\\max$'),
         (['average'], '$m_1$'),
         (['average', 'min'],              '$m_2$'),
         (['average', 'median', 'median'], '$m_3$')
     ]
-    epsilon_table = eps_table(model_names, fns, True)
-    print(epsilon_table)
+    EPSILON_TABLE = eps_table(MODELS, FNS, True)
+    print(EPSILON_TABLE)
