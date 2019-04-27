@@ -3,7 +3,7 @@ This program collects the weights of all the conv2d and dense layers
 to feed it to the jupyter notebook for analysis.
 """
 
-from os.path import join
+from os.path import join, expanduser
 
 from keras.layers.convolutional import Conv2D
 from keras.layers.core import Dense
@@ -35,7 +35,7 @@ def proc_model(model):
     return results
 
 
-def write_results(results, name, base="report/weights"):
+def write_results(results, name, base=expanduser("~/tmp/nnc_weights")):
     for idx, typ, shp, result in results:
         file_name = "{}_{}_{}_{}".format(name, idx, typ, shp)
         file_name = join(base, file_name)

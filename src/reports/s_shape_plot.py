@@ -4,10 +4,11 @@ weights.
 """
 
 from glob import glob
-from os.path import splitext, basename, join
 from multiprocessing import Pool
-import numpy as np
+from os.path import splitext, basename, join, expanduser
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def proc_file(name, base="report/s_shapes"):
@@ -33,7 +34,7 @@ def proc_file(name, base="report/s_shapes"):
         plt.close()
 
 
-def proc_all_files(src="report/weights/*"):
+def proc_all_files(src=expanduser("~/tmp/nnc_weights/*")):
     """Process all pre-generated weight files."""
     files = glob(src)
     pool = Pool()
