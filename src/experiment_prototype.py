@@ -13,7 +13,6 @@ from nnclib.experiments import model_factory, data_factory
 if os.path.exists('src'):
     sys.path.append('src')
 
-DEBUG = True
 
 def create_new_layer(layer):
     """TODO(vatai): rename to compressed_dense()"""
@@ -35,8 +34,6 @@ def run_experiment(get_data, get_model, modifier):
     model = get_model(train_data)
     model = modifier(model)
     if isinstance(test_data, tuple):
-        # sped up
-        if DEBUG: test_data = map(lambda t: t[:10], test_data)
         result = model.evaluate(*test_data)
     else:
         msg = 'The test data is of type which can not be' + \
