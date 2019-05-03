@@ -11,6 +11,7 @@ from keras.layers import Dense
 from keras.callbacks import ModelCheckpoint
 from keras.models import Model
 from keras.models import load_model
+from keras.losses import categorical_crossentropy
 
 
 def vgg16_mod(train_data, hidden_units=1024, output_units=10):
@@ -35,17 +36,20 @@ def vgg16_mod(train_data, hidden_units=1024, output_units=10):
     for layer in base_model.layers:
         layer.trainable = False
 
-    # loss and optimizer
+    # loss and optimiser
     model.compile(loss='sparse_categorical_crossentropy',
                   optimizer=optimizers.SGD(lr=0.01),
                   metrics=['accuracy'])
 
-    callbacks = [ModelCheckpoint(filepath, save_best_only=True)]
     # training
     if train_data:
         x_train, t_train = train_data
-        model.fit(x_train, t_train, epochs=5, batch_size=64, callbacks=callbacks)
+        kwargs = {
+            'epochs': 5,
+            'batch_size': 64,
+            'val_loss': categorical_crossentropy,
+            'callbacks': [ModelCheckpoint(filepath, save_best_only=True)],
+        }
+        model.fit(x_train, t_train, **kwargs)
         model.save(filepath)
     return model
-
-
