@@ -4,6 +4,8 @@ import sys
 if os.path.exists('src'):
     sys.path.append('src')
 
+from keras import optimizers
+from keras.models import Model
 from keras.applications.resnet50 import ResNet50
 from keras.datasets import cifar10
 from keras.layers import Dense
@@ -11,6 +13,7 @@ import keras.backend as K
 
 
 DEBUG = True
+
 
 def create_new_layer(layer):
     """TODO(vatai): rename to compressed_dense()"""
@@ -96,7 +99,7 @@ def modifier(model, condition, new_layer_factory):
 
         # Determine input tensors
         layer_input = [new_output_tensor_of[layer_aux]
-                    for layer_aux in input_layers_of[layer.name]]
+                       for layer_aux in input_layers_of[layer.name]]
         if len(layer_input) == 1:
             layer_input = layer_input[0]
 
