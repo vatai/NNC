@@ -4,10 +4,8 @@ import os
 import sys
 
 from keras import optimizers
-from keras.applications.resnet50 import ResNet50
 from keras.layers import Dense
 from keras.models import Model
-import keras.backend as K
 
 from custom_layer_test import CompressedPrototype, get_new_weights
 from nnclib.experiments import model_factory, data_factory
