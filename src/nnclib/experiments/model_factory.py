@@ -45,7 +45,7 @@ def vgg16_mod(train_data, hidden_units=4046, output_units=10):
     if train_data:
         x_train, t_train = train_data
         kwargs = {
-            'epochs': 20,
+            'epochs': 256,
             'batch_size': 128,
             'validation_split': 0.2,
             'callbacks': [ModelCheckpoint(filepath, save_best_only=True)],
