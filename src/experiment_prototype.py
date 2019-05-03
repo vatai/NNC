@@ -1,4 +1,15 @@
-"""Model."""
+"""Experiment prototype, to try out the library structure.
+
+TODO(vatai): modifier compile_args.
+
+TODO(vatai): naming convention.
+
+TODO(vatai): data generation: design matrix vs generator
+
+TODO(vatai): instead of condition, new_layer_factory make just a
+conditional_layer_factory.
+
+"""
 from functools import partial
 import os
 import sys
@@ -8,7 +19,7 @@ from keras.layers import Dense
 from keras.models import Model
 
 from custom_layer_test import CompressedPrototype, get_new_weights
-from nnclib.experiments import model_factory, data_factory
+from nnclib.experiments import run_experiment, model_factory, data_factory
 
 if os.path.exists('src'):
     sys.path.append('src')
@@ -23,23 +34,6 @@ def create_new_layer(layer):
     new_layer = CompressedPrototype(layer.units, weights=new_weights)
     # new_layer.set_weights(new_weights)
     return new_layer
-
-
-def run_experiment(get_data, get_model, modifier):
-    """Run the experiment.  This consists of getting the data, creating
-    the model (including training) and evaluating the results.
-
-    """
-    train_data, test_data = get_data()
-    model = get_model(train_data)
-    model = modifier(model)
-    if isinstance(test_data, tuple):
-        result = model.evaluate(*test_data)
-    else:
-        msg = 'The test data is of type which can not be' + \
-            ' handeled by the current implementation.'
-        raise NotImplementedError(msg)
-    return result
 
 
 def modifier(model, condition, new_layer_factory):
@@ -113,7 +107,7 @@ def modifier(model, condition, new_layer_factory):
 def partial_isinstance(typ):
     """Partially applies isinstance(., typ).
 
-    Args: 
+    Args:
 
         `typ` (type, list): a typ or list of types passed as an the
         second arg of isinstance().
@@ -124,30 +118,6 @@ def partial_isinstance(typ):
     """
     return lambda x: isinstance(x, typ)
 
-
-# train, val, test = get_data()
-# model = get_model()
-# model.fit(train, val)
-# if modifier:
-#     model = modifier(model)
-# results = model.evaluate(data)
-# save(results, model)
-# # later
-# data = analyse(results, model)
-# write_latex_table(data)
-
-# OR
-
-# train, val, test = get_generators()
-# model = get_model()
-# model.fit_generator(train, val)
-# model.eval_generator(test)
-
-"""TODO(vatai): modifier compile_args.
-
-TODO(vatai): naming convention.
-
-"""
 
 RESULT = run_experiment(data_factory.cifar10_float32,
                         model_factory.vgg16_mod,
