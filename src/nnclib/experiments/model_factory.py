@@ -47,8 +47,10 @@ def vgg16_mod(train_data, hidden_units=1024, output_units=10):
         kwargs = {
             'epochs': 5,
             'batch_size': 64,
-            'val_loss': categorical_crossentropy,
+            'validation_split': 0.1,
+            # 'val_loss': categorical_crossentropy,
             'callbacks': [ModelCheckpoint(filepath, save_best_only=True)],
+            
         }
         model.fit(x_train, t_train, **kwargs)
         model.save(filepath)
