@@ -1,4 +1,6 @@
+"""'Hub' code, to run experiments."""
 import time
+
 
 def run_experiment(get_data, get_model, modifier):
     """Run the experiment.  This consists of getting the data, creating
@@ -9,7 +11,7 @@ def run_experiment(get_data, get_model, modifier):
     model = get_model(train_data)
     model = modifier(model)
     if isinstance(test_data, tuple):
-        start = time.clock() 
+        start = time.clock()
         eval_results = model.evaluate(*test_data)
         end = time.clock()
         result = {
@@ -22,4 +24,3 @@ def run_experiment(get_data, get_model, modifier):
             ' handeled by the current implementation.'
         raise NotImplementedError(msg)
     return result
-
