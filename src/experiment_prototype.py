@@ -1,18 +1,21 @@
 """Model."""
+from functools import partial
 import os
 import sys
+
+from keras import optimizers
+from keras.applications.resnet50 import ResNet50
+from keras.layers import Dense
+from keras.models import Model
+import keras.backend as K
+
+from custom_layer_test import CompressedPrototype, get_new_weights
+from nnclib.experiments import model_factory, data_factory
+
 if os.path.exists('src'):
     sys.path.append('src')
 
-from keras import optimizers
-from keras.models import Model
-from keras.applications.resnet50 import ResNet50
-from keras.layers import Dense
-import keras.backend as K
-
-
 DEBUG = True
-
 
 def create_new_layer(layer):
     """TODO(vatai): rename to compressed_dense()"""
@@ -150,22 +153,11 @@ def partial_isinstance(typ):
 TODO(vatai): naming convention.
 
 """
-# from nnclib.experiments import run_experiment, data_factory, model_factory
 
-# run_esperiment(data_factory.cifar10_float32, model_factory.vgg16, mod)
-
-from functools import partial
-
-from nnclib.generators import CropGenerator
-from nnclib.experiments import model_factory, data_factory
-
-from custom_layer_test import CompressedPrototype, get_new_weights
-
-
-MOD = partial(modifier,
-                 condition=partial_isinstance(Dense),
-                 new_layer_factory=create_new_layer)
-
-RESULT = run_experiment(data_factory.cifar10_float32, model_factory.vgg16_mod, MOD)
+RESULT = run_experiment(data_factory.cifar10_float32,
+                        model_factory.vgg16_mod,
+                        partial(modifier,
+                                condition=partial_isinstance(Dense),
+                                new_layer_factory=create_new_layer))
 
 print('Results: {}'.format(RESULT))
