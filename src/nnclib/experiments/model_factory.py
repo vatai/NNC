@@ -1,4 +1,7 @@
-"""Model factories: functions which return a model to be used by `run_experiment`."""
+"""Model factories: functions which return a model to be used by
+`run_experiment`.
+
+"""
 
 import os
 

@@ -7,7 +7,6 @@ if os.path.exists('src'):
 from keras import optimizers
 from keras.models import Model
 from keras.applications.resnet50 import ResNet50
-from keras.datasets import cifar10
 from keras.layers import Dense
 import keras.backend as K
 
@@ -24,18 +23,6 @@ def create_new_layer(layer):
     new_layer = CompressedPrototype(layer.units, weights=new_weights)
     # new_layer.set_weights(new_weights)
     return new_layer
-
-
-def get_cifar10_float32():
-    # data
-    """get_cifar10_float32"""
-    (x_train, t_train), (x_test, t_test) = cifar10.load_data()
-    x_train = x_train.astype('float32') / 255.0
-    x_test = x_test.astype('float32') / 255.0
-
-    t_train = t_train.flatten()
-    t_test = t_test.flatten()
-    return (x_train, t_train), (x_test, t_test)
 
 
 def run_experiment(get_data, get_model, modifier):
@@ -170,7 +157,8 @@ TODO(vatai): naming convention.
 from functools import partial
 
 from nnclib.generators import CropGenerator
-from nnclib.experiments.model_factory import vgg16_mod
+from nnclib.experiments import model_factory, data_factory
+
 from custom_layer_test import CompressedPrototype, get_new_weights
 
 
@@ -178,6 +166,6 @@ MOD = partial(modifier,
                  condition=partial_isinstance(Dense),
                  new_layer_factory=create_new_layer)
 
-RESULT = run_experiment(get_cifar10_float32, vgg16_mod, MOD)
+RESULT = run_experiment(data_factory.cifar10_float32, model_factory.vgg16_mod, MOD)
 
 print('Results: {}'.format(RESULT))
