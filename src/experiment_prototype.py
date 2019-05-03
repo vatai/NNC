@@ -11,6 +11,7 @@ conditional_layer_factory.
 
 """
 from functools import partial
+from pprint import pprint
 import os
 import sys
 
@@ -125,4 +126,4 @@ RESULT = run_experiment(data_factory.cifar10_float32,
                                 condition=partial_isinstance(Dense),
                                 new_layer_factory=create_new_layer))
 
-print('Results: {}'.format(RESULT))
+pprint(RESULT)
