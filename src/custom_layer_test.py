@@ -91,6 +91,8 @@ class CompressedPrototype(keras.layers.Layer):
 
     def __init__(self, output_dim, **kwargs):
         self.output_dim = output_dim
+        self.so_name = './src/unsortOp/unsort_ops.so'
+        self.unsort_module = tensorflow.load_op_library(so_name)
         super(CompressedPrototype, self).__init__(**kwargs)
 
     def build(self, input_shape):
@@ -144,15 +146,13 @@ class CompressedPrototype(keras.layers.Layer):
         """
         # Load and apply the custom Op unsort.
         import tensorflow
-        so_name = './src/unsortOp/unsort_ops.so'
-        unsort_module = tensorflow.load_op_library(so_name)
-        output = unsort_module.unsort(inputs, self.indices, self.mean)
+        output = self.unsort_module.unsort(inputs, self.indices, self.mean)
         return K.bias_add(output, self.bias, data_format='channels_last')
 
     def compute_output_shape(self, input_shape):
         """Computes the output shape of the layer, which is ``(batch_size,
         output_dim)``.
-        
+
         Args:
 
             input_shape (tuple): shape of input tensor ``(batch_size,
