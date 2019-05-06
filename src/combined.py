@@ -87,9 +87,10 @@ from sacred import Experiment
 from sacred.observers import FileStorageObserver
 from sacred.observers import TelegramObserver
 
+from nnclib.compression import reshape_weights
 from nnclib.generators import CropGenerator
 from nnclib.model_dict import model_dict
-from nnclib.utils import get_results_dir, reshape_weights
+from nnclib.utils import get_results_dir
 
 
 EX = Experiment()

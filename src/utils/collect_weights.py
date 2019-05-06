@@ -10,7 +10,7 @@ from keras.layers.core import Dense
 import numpy as np
 
 from nnclib.model_dict import model_dict
-from nnclib.utils import reshape_weights
+from nnclib.compression import reshape_weights
 
 
 def proc_layer(layer):
