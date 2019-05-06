@@ -2,17 +2,17 @@
 import time
 
 
-def run_experiment(get_data, get_model, modifier):
+def run_experiment(data_getter, model_maker, evaluator, modifier):
     """Run the experiment.  This consists of getting the data, creating
     the model (including training) and evaluating the results.
 
     """
-    train_data, test_data = get_data()
-    model = get_model(train_data)
+    train_data, test_data = data_getter()
+    model = model_maker(train_data)
     model = modifier(model)
     if isinstance(test_data, tuple):
         start = time.clock()
-        eval_results = model.evaluate(*test_data)
+        eval_results = evaluator(model, test_data)
         end = time.clock()
         result = {
             'loss': eval_results[0],
