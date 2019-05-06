@@ -44,12 +44,12 @@ def vgg16_mod(train_data, hidden_units=4046, output_units=10):
     # training
     if train_data:
         x_train, t_train = train_data
-        kwargs = {
+        fit_args = {
             'epochs': 256,
             'batch_size': 128,
             'validation_split': 0.2,
             'callbacks': [ModelCheckpoint(filepath, save_best_only=True)],
         }
-        model.fit(x_train, t_train, **kwargs)
+        model.fit(x_train, t_train, **fit_args)
         model.save(filepath)
     return model
