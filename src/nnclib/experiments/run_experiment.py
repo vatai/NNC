@@ -2,14 +2,15 @@
 import time
 
 
-def run_experiment(data_getter, model_maker, evaluator, modifier):
+def run_experiment(data_getter, model_maker, evaluator, modifier=None):
     """Run the experiment.  This consists of getting the data, creating
-    the model (including training) and evaluating the results.
+    the model (maybe training) and evaluating the results.
 
     """
     train_data, test_data = data_getter()
     model = model_maker(train_data)
-    model = modifier(model)
+    if modifier is not None:
+        model = modifier(model)
     if isinstance(test_data, tuple):
         start = time.clock()
         eval_results = evaluator(model, test_data)
