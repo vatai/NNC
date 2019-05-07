@@ -25,12 +25,12 @@ def config():
     data_getter = data_factory.cifar10_float32
     model_maker = model_factory.vgg16_mod
 
-    train_args = dict(epochs=6,
+    train_args = dict(epochs=300,
                       validation_split=0.2,
                       callbacks=[
                           WeightsUpdater(
                               updater_list=[(Dense, reshape_norm_meld)],
-                              on_nth_epoch=1)
+                              on_nth_epoch=10)
                       ])
     evaluator=evaluator
     modifier=None
