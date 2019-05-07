@@ -10,7 +10,7 @@ from functools import partial
 
 from keras.layers import Dense
 from sacred import Experiment
-from sacred.observers import FileStorageObserver
+from sacred.observers import FileStorageObserver, TelegramObserver
 
 from nnclib.experiments import run_experiment, model_factory, data_factory
 from nnclib.compression import evaluator, trainer, \
@@ -18,6 +18,8 @@ from nnclib.compression import evaluator, trainer, \
 
 ex = Experiment()
 ex.observers.append(FileStorageObserver.create('new_results'))
+if exists('telegram.json'):
+    ex.observers.append(TelegramObserver.from_config('telegram.json'))
 
 
 @ex.config
