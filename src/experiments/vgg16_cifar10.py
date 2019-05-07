@@ -19,7 +19,7 @@ from nnclib.compression import evaluator, trainer, \
 from nnclib.experiments import run_experiment, model_factory, data_factory
 
 ex = Experiment()
-ex.observers.append(FileStorageObserver.create(sys.argv[0]+'resluts')
+ex.observers.append(FileStorageObserver.create(sys.argv[0]+'resluts'))
 if exists('telegram.json'):
     ex.observers.append(TelegramObserver.from_config('telegram.json'))
 
