@@ -3,4 +3,4 @@
 #SBATCH --exclusive
 #SBATCH --gres=gpu:1
 
-srun python vgg16_cifar10.py
+PYTHONPATH=.. srun python vgg16_cifar10.py
