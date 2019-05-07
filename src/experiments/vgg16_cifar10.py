@@ -10,6 +10,7 @@ from functools import partial
 from os.path import exists
 import sys
 
+from keras.callbacks import TensorBoard
 from keras.layers import Dense
 from sacred import Experiment
 from sacred.observers import FileStorageObserver, TelegramObserver
@@ -31,12 +32,14 @@ def config():
 
     train_args = dict(epochs=300,
                       validation_split=0.2,
+                      verbose=2,
+                      batch_size=128,
                       callbacks=[
+                          TensorBoard('./log', 1),
                           WeightsUpdater(
                               updater_list=[(Dense, reshape_norm_meld)],
                               on_nth_epoch=10)
-                      ],
-                      verbose=2)
+                      ])
     evaluator=evaluator
     modifier=None
 
