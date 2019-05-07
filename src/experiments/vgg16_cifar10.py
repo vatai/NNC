@@ -33,7 +33,8 @@ def config():
                       callbacks=[
                           WeightsUpdater(
                               updater_list=[(Dense, reshape_norm_meld)],
-                              on_nth_epoch=10)
+                              on_nth_epoch=10),
+                          verbose=2
                       ])
     evaluator=evaluator
     modifier=None
