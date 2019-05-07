@@ -16,24 +16,24 @@ import sys
 
 from keras.layers import Dense, Conv2D
 
-from custom_layer_test import CompressedPrototype, get_new_weights
+# from custom_layer_test import CompressedPrototype, get_new_weights
 from nnclib.experiments import run_experiment, model_factory, data_factory
 from nnclib.compression import evaluator, trainer, \
     reshape_norm_meld, WeightsUpdater
 
-if os.path.exists('src'):
-    sys.path.append('src')
+# if os.path.exists('src'):
+#     sys.path.append('src')
 
 
-def create_meld_dense(layer):
-    """Called for replacing a dense layer with a 'meld dense' layer."""
-    old_weights = layer.get_weights()
-    new_weights = get_new_weights(old_weights)
-    # print("layer.units and output_dim: {} {}"
-    #       .format(layer.units, K.int_shape(layer.output)[1]))
-    new_layer = CompressedPrototype(layer.units, weights=new_weights)
-    # new_layer.set_weights(new_weights)
-    return new_layer
+# def create_meld_dense(layer):
+#     """Called for replacing a dense layer with a 'meld dense' layer."""
+#     old_weights = layer.get_weights()
+#     new_weights = get_new_weights(old_weights)
+#     # print("layer.units and output_dim: {} {}"
+#     #       .format(layer.units, K.int_shape(layer.output)[1]))
+#     new_layer = CompressedPrototype(layer.units, weights=new_weights)
+#     # new_layer.set_weights(new_weights)
+#     return new_layer
 
 
 EPOCHS = 6
