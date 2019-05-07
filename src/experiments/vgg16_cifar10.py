@@ -8,6 +8,7 @@ Experiment description:
 
 from functools import partial
 from os.path import exists
+import sys
 
 from keras.layers import Dense
 from sacred import Experiment
@@ -18,7 +19,7 @@ from nnclib.compression import evaluator, trainer, \
 from nnclib.experiments import run_experiment, model_factory, data_factory
 
 ex = Experiment()
-ex.observers.append(FileStorageObserver.create('new_results'))
+ex.observers.append(FileStorageObserver.create(sys.argv[0]+'resluts')
 if exists('telegram.json'):
     ex.observers.append(TelegramObserver.from_config('telegram.json'))
 
@@ -33,9 +34,9 @@ def config():
                       callbacks=[
                           WeightsUpdater(
                               updater_list=[(Dense, reshape_norm_meld)],
-                              on_nth_epoch=10),
-                          verbose=2
-                      ])
+                              on_nth_epoch=10)
+                      ],
+                      verbose=2)
     evaluator=evaluator
     modifier=None
 
