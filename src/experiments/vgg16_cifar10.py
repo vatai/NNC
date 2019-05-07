@@ -7,14 +7,15 @@ Experiment description:
 """
 
 from functools import partial
+from os.path import exists
 
 from keras.layers import Dense
 from sacred import Experiment
 from sacred.observers import FileStorageObserver, TelegramObserver
 
-from nnclib.experiments import run_experiment, model_factory, data_factory
 from nnclib.compression import evaluator, trainer, \
     reshape_norm_meld, WeightsUpdater
+from nnclib.experiments import run_experiment, model_factory, data_factory
 
 ex = Experiment()
 ex.observers.append(FileStorageObserver.create('new_results'))
