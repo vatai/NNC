@@ -8,16 +8,18 @@ TODO(vatai): instead of condition, new_layer_factory make just a
 conditional_layer_factory.
 
 """
+
 from functools import partial
 from pprint import pprint
 import os
 import sys
 
-from keras.layers import Dense
+from keras.layers import Dense, Conv2D
 
 from custom_layer_test import CompressedPrototype, get_new_weights
 from nnclib.experiments import run_experiment, model_factory, data_factory
-from nnclib.compression import modifier
+from nnclib.compression import evaluator, trainer, \
+    reshape_norm_meld, WeightsUpdater
 
 if os.path.exists('src'):
     sys.path.append('src')
@@ -34,15 +36,18 @@ def create_meld_dense(layer):
     return new_layer
 
 
-def partial_isinstance(typ):
-    """Partially applies isinstance(., typ)."""
-    return lambda x: isinstance(x, typ)
+EPOCHS = 6
 
+UPDATER_LIST = [(Dense, reshape_norm_meld), (Conv2D, reshape_norm_meld)]
 
-RESULT = run_experiment(data_factory.cifar10_float32,
-                        model_factory.vgg16_mod,
-                        partial(modifier,
-                                condition=partial_isinstance(Dense),
-                                new_layer_factory=create_meld_dense))
+RESULT = run_experiment(data_getter=data_factory.cifar10_float32,
+                        model_maker=model_factory.vgg16_mod,
+                        trainer=partial(trainer,
+                                        epochs=EPOCHS,
+                                        callbacks=[WeightsUpdater(
+                                            updater_list=UPDATER_LIST,
+                                            on_nth_epoch=1)]),
+                        evaluator=evaluator,
+                        modifier=None)
 
 pprint(RESULT)

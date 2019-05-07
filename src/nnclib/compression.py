@@ -3,9 +3,10 @@
 import numpy as np
 
 from keras import optimizers
-from keras.layers import Dense
-from keras.models import Model
 from keras.callbacks import Callback
+from keras.models import Model
+from keras.utils import Sequence
+# from keras.layers import Dense, Conv2D
 
 
 def reshape_weights(weights):
@@ -26,7 +27,7 @@ def reshape_weights(weights):
     return weights
 
 
-def meld(weights):
+def _meld(weights):
     """Return the melded weight matrix."""
     sorting = np.argsort(weights, axis=0)
     weights = np.take_along_axis(weights, sorting, axis=0)
@@ -36,7 +37,7 @@ def meld(weights):
     return weights
 
 
-def norm(weights, melder):
+def _norm(weights, melder):
     """Return weight matrix after normalised melding."""
     norms = np.linalg.norm(weights, axis=0)
     weights /= norms
@@ -45,9 +46,9 @@ def norm(weights, melder):
     return weights
 
 
-def norm_meld(weights):
+def _norm_meld(weights):
     """Combine normalisation and melding."""
-    return norm(weights, meld)
+    return _norm(weights, _meld)
 
 
 def _reshape_check(weights, melder):
@@ -62,52 +63,61 @@ def _reshape_check(weights, melder):
 
 def reshape_meld(weights):
     """Reshape and meld weights matrix."""
-    return _reshape_meld(weights, meld)
+    return _reshape_check(weights, _meld)
 
 
 def reshape_norm_meld(weights):
     """Reshape, normalise and meld weights matrix."""
-    return _reshape_meld(weights, norm_meld)
+    return _reshape_check(weights, _norm_meld)
 
 
 # """Keras specific."""
 
-class BatchWeightsUpdater(Callback):
+class WeightsUpdater(Callback):
     """Batch updater callbacks."""
-    def __init__(self, types, updater, on_nth_batch=0, on_nth_epoch=0):
-        self.types = types
-        self.updater = updater
-        self._batch = on_nth_batch
-        self._epoch = on_nth_epoch
+    def __init__(self, updater_list, on_nth_batch=0, on_nth_epoch=0):
+        self.updater_list = updater_list
         self._on_nth_batch = on_nth_batch
         self._on_nth_epoch = on_nth_epoch
+        # `self._batch_counter` and `self._epoch_counter` are the
+        # counters to keep track of when to apply the `on_batch_end()`
+        # and `on_epoch_end()`. The `-1` is to ensure correct
+        # behaviour (since batches and epochs are enumerated from 0),
+        # and also a nifty trick to avoid calling the callback if
+        # `on_nth_{batch,epoch}` is 0.
+        self._batch_counter = on_nth_batch - 1
+        self._epoch_counter = on_nth_epoch - 1
         super().__init__()
 
-    def on_batch_end(self, batch):
+    def on_batch_end(self, batch, log={}):
         """Meld weights on the end of each nth batch."""
-        if batch and self._batch == batch:
-            weights_updater(self.model, self.types, self.updater)
-            self._batch += self._on_nth_batch
+        if self._batch_counter == batch:
+            weights_updater(self.model, self.updater_list)
+            self._batch_counter += self._on_nth_batch
 
-    def on_epoch_end(self, epoch):
+    def on_epoch_end(self, epoch, log={}):
         """Meld weights on the end of each nth epoch."""
-        if epoch and self._epoch == epoch:
-            weights_updater(self.model, self.types, self.updater)
-            self._epoch += self._on_nth_epoch
+        print("on_epoch_end({})".format(epoch))
+        if self._epoch_counter == epoch:
+            weights_updater(self.model, self.updater_list)
+            self._epoch_counter += self._on_nth_epoch
 
 
-def weights_updater(model, types, updater):
+def weights_updater(model, updater_list):
     """For every layer of the `model` which belongs to one of the `types`
     then perform `weights_updater` on it.
 
     """
+    print("Updating model: {}".format(updater_list))
+
     for layer in model.layers:
-        if isinstance(layer, types):
-            weights_list = layer.get_weights()
-            for i, weights in enumerate(weights_list):
-                new_weights = updater(weights)
-                weights_list[i] = new_weights
-            layer.set_weights(weights_list)
+        for types, updater in updater_list:
+            if isinstance(layer, types):
+                weights_list = layer.get_weights()
+                for i, weights in enumerate(weights_list):
+                    new_weights = updater(weights)
+                    weights_list[i] = new_weights
+                layer.set_weights(weights_list)
 
 
 def modifier(model, condition, new_layer_factory):
@@ -181,11 +191,33 @@ def modifier(model, condition, new_layer_factory):
 def trainer(model, data, **fit_args):
     """Keras trainer with melding."""
     import types
-    from keras.utils import Sequence
 
-    if isinstance(data, types.GeneratorType, Sequence):
+    if isinstance(data, (types.GeneratorType, Sequence)):
         trainer_fun = model.fit_generator
     else:
         trainer_fun = model.fit
 
-    trainer_fun(data, **fit_args)
+    trainer_fun(*data, **fit_args)
+
+
+def evaluator(model, data, **eval_args):
+    """Keras evaluation."""
+    import types
+
+    if isinstance(data, (types.GeneratorType, Sequence)):
+        eval_fun = model.eval_generator
+    elif isinstance(data, tuple):
+        eval_fun = model.evaluate
+    else:
+        msg = 'The test data is of type which can not be' + \
+            ' handeled by the current implementation.'
+        raise NotImplementedError(msg)
+
+    return eval_fun(*data, **eval_args)
+
+
+# def norm_meld_trainer(model, data):
+#     epoch_melder = WeightsUpdater(types=(Dense, Conv2D),
+#                                   updater=reshape_norm_meld,
+#                                   on_nth_epoch=2)
+#     trainer(model, data, callbacks=[epoch_melder])
