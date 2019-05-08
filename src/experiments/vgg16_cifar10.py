@@ -10,7 +10,6 @@ from functools import partial
 from os.path import exists
 import sys
 
-from keras.callbacks import TensorBoard
 from keras.layers import Dense
 from sacred import Experiment
 from sacred.observers import FileStorageObserver, TelegramObserver
@@ -31,10 +30,10 @@ def config():
     """Experiment parameters."""
     # pylint: disable=unused-variable
     # flake8: noqa: F841
-    seed=42 # random seed
+    seed = 42 # random seed
     data_getter = data_factory.cifar10_float32
     model_maker = model_factory.vgg16_mod
-    num_gpus=1
+    num_gpus = 1
     compile_args = {}
     fit_args = dict(epochs=300,
                     validation_split=0.2,
@@ -55,7 +54,9 @@ def main(_seed, data_getter, model_maker, num_gpus, compile_args,
     """Experiment automain function."""
     tf.set_random_seed(_seed)
     return run_experiment(data_getter,
-                          partial(model_maker, compile_args=compile_args),
+                          partial(model_maker,
+                                  num_gpus=num_gpus,
+                                  compile_args=compile_args),
                           partial(trainer, **fit_args),
                           evaluator=evaluation,
                           modifier=modifier)
