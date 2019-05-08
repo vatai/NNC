@@ -27,28 +27,32 @@ if exists('telegram.json'):
 
 @ex.config
 def config():
+    """Experiment parameters."""
+    # pylint: disable=unused-variable
+    # flake8: noqa: F841
     data_getter = data_factory.cifar10_float32
     model_maker = model_factory.vgg16_mod
-
-    train_args = dict(epochs=300,
-                      validation_split=0.2,
-                      verbose=2,
-                      batch_size=128,
-                      callbacks=[
-                          TensorBoard('./log', 1),
-                          WeightsUpdater(
-                              updater_list=[(Dense, reshape_norm_meld)],
-                              on_nth_epoch=10)
-                      ])
-    evaluator=evaluator
-    modifier=None
+    compile_args = {}
+    fit_args = dict(epochs=300,
+                    validation_split=0.2,
+                    verbose=2,
+                    batch_size=128,
+                    callbacks=[
+                        TensorBoard('./log', 1),
+                        WeightsUpdater(
+                            updater_list=[(Dense, reshape_norm_meld)],
+                            on_nth_epoch=10)
+                    ])
+    evaluation = evaluator
+    modifier = None
 
 
 @ex.automain
-def main(data_getter, model_maker, train_args, evaluator, modifier):
+def main(data_getter, model_maker, compile_args, fit_args, evaluation, modifier):
+    """Experiment automain function."""
     return run_experiment(data_getter,
-                          model_maker,
-                          partial(trainer, **train_args),
-                          evaluator=evaluator,
+                          partial(model_maker, compile_args=compile_args),
+                          partial(trainer, **fit_args),
+                          evaluator=evaluation,
                           modifier=modifier)
 

@@ -14,14 +14,8 @@ from keras.models import load_model
 from keras.losses import categorical_crossentropy
 
 
-def vgg16_mod(train_data, hidden_units=4046, output_units=10):
-    """Modified vgg16
-
-    """
-    filepath = "cifar10_vgg16"
-    if os.path.exists(filepath):
-        model = load_model(filepath)
-        return model
+def vgg16_mod(train_data, hidden_units=4046, output_units=10, compile_args=None):
+    """Modified vgg16. """
 
     # model
     base_model = VGG16(weights='imagenet',
@@ -36,10 +30,17 @@ def vgg16_mod(train_data, hidden_units=4046, output_units=10):
     for layer in base_model.layers:
         layer.trainable = False
 
-    # loss and optimiser
-    model.compile(loss='sparse_categorical_crossentropy',
-                  optimizer=optimizers.SGD(lr=0.01),
-                  metrics=['accuracy'])
+    # some defaults
+    if compile_args=None:
+        compile_args = {}
+    if 'loss' not in compile_args:
+        compile_args['loss'] = 'sparse_categorical_crossentropy'
+    if 'optimizer' not in compile_args:
+        compile_args['optimizer'] = optimizers.SGD(lr=0.01)
+    if 'metrics' not in compile_args:
+        compile_args['metrics'] = ['accuracy']
+
+    model.compile(**compile_args)
 
     # training
     if train_data:
