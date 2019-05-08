@@ -28,7 +28,7 @@ def vgg16_mod(train_data, compile_args, num_gpus=1, hidden_units=4046,
     model = Model(inputs=base_model.input, outputs=y)
 
     if num_gpus > 1:
-        model = multi_gpu_model(model)
+        model = multi_gpu_model(model, gpus=num_gpus)
 
     # trainable variables
     for layer in base_model.layers:
