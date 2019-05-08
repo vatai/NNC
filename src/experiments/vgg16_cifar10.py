@@ -34,6 +34,7 @@ def config():
     seed=42 # random seed
     data_getter = data_factory.cifar10_float32
     model_maker = model_factory.vgg16_mod
+    num_gpus=1
     compile_args = {}
     fit_args = dict(epochs=300,
                     validation_split=0.2,
@@ -49,8 +50,8 @@ def config():
 
 
 @ex.automain
-def main(_seed, data_getter, model_maker, compile_args, fit_args,
-         evaluation, modifier):
+def main(_seed, data_getter, model_maker, num_gpus, compile_args,
+         fit_args, evaluation, modifier):
     """Experiment automain function."""
     tf.set_random_seed(_seed)
     return run_experiment(data_getter,
