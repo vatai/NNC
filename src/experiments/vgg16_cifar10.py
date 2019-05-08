@@ -40,7 +40,6 @@ def config():
                     verbose=2,
                     batch_size=128,
                     callbacks=[
-                        TensorBoard('./log', 1),
                         WeightsUpdater(
                             updater_list=[(Dense, reshape_norm_meld)],
                             on_nth_epoch=10)
