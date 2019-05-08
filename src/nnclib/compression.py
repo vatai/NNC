@@ -97,7 +97,6 @@ class WeightsUpdater(Callback):
 
     def on_epoch_end(self, epoch, log={}):
         """Meld weights on the end of each nth epoch."""
-        print("on_epoch_end({})".format(epoch))
         if self._epoch_counter == epoch:
             weights_updater(self.model, self.updater_list)
             self._epoch_counter += self._on_nth_epoch
