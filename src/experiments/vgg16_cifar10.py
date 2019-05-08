@@ -14,6 +14,7 @@ from keras.callbacks import TensorBoard
 from keras.layers import Dense
 from sacred import Experiment
 from sacred.observers import FileStorageObserver, TelegramObserver
+import tensorflow as tf
 
 from nnclib.compression import evaluator, trainer, \
     reshape_norm_meld, WeightsUpdater
@@ -30,6 +31,7 @@ def config():
     """Experiment parameters."""
     # pylint: disable=unused-variable
     # flake8: noqa: F841
+    seed=42 # random seed
     data_getter = data_factory.cifar10_float32
     model_maker = model_factory.vgg16_mod
     compile_args = {}
@@ -48,8 +50,10 @@ def config():
 
 
 @ex.automain
-def main(data_getter, model_maker, compile_args, fit_args, evaluation, modifier):
+def main(_seed, data_getter, model_maker, compile_args, fit_args,
+         evaluation, modifier):
     """Experiment automain function."""
+    tf.set_random_seed(_seed)
     return run_experiment(data_getter,
                           partial(model_maker, compile_args=compile_args),
                           partial(trainer, **fit_args),
