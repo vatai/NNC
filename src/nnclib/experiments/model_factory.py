@@ -31,7 +31,7 @@ def vgg16_mod(train_data, hidden_units=4046, output_units=10, compile_args=None)
         layer.trainable = False
 
     # some defaults
-    if compile_args=None:
+    if compile_args is None:
         compile_args = {}
     if 'loss' not in compile_args:
         compile_args['loss'] = 'sparse_categorical_crossentropy'
