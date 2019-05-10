@@ -14,7 +14,7 @@ from keras.models import Model, load_model
 from keras.utils import multi_gpu_model
 
 
-def vgg16_mod(train_data, compile_args, num_gpus=1, hidden_units=4046,
+def vgg16_mod(compile_args, num_gpus=1, hidden_units=4046,
               output_units=10):
     """Modified vgg16. """
 

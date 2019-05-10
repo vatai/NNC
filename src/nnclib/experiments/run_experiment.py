@@ -9,7 +9,7 @@ def run_experiment(data_getter, model_maker, trainer=None,
 
     """
     train_data, test_data = data_getter()
-    model = model_maker(train_data)
+    model = model_maker()
 
     if modifier is not None:
         model = modifier(model)
