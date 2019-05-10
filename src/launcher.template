@@ -1,0 +1,5 @@
+#!/bin/sh
+#SBATCH -p PART
+#SBATCH --gres=gpu:NUMGPU
+
+srun python CMD
