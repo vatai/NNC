@@ -29,7 +29,10 @@ def _inceptionresnetv2_config():
         'target_size': 299,
         'fast_mode': 1
     }
-    eval_args = { 'verbose': True }
+    eval_args = {
+        'use_multiprocessing': True,
+        'verbose': True,
+    }
     updater_list = [(Dense, reshape_norm_meld), (Conv2D,
                                                  reshape_norm_meld)]
 
