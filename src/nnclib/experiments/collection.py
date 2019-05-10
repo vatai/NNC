@@ -28,13 +28,15 @@ def _inceptionresnetv2_config():
     gen_args = {
         'img_dir': expanduser("~/tmp/ilsvrc/db"),
         'val_file': expanduser("~/tmp/ilsvrc/caffe_ilsvrc12/val.txt"),
-        'batch_size': 32,
+        'batch_size': 256,
         # 'fast_mode': 1,
         'target_size': 299,
         'preproc': preprocess_input,
     }
     eval_args = {
         'use_multiprocessing': True,
+	'workers': 10,
+        'max_queue_size': 20,
         'verbose': True,
     }
     updater_list = [(Dense, partial(reshape_norm_meld, delta=1)),
