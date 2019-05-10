@@ -1,5 +1,6 @@
 """InceptionResNetV2 experiment."""
 
+from functools import partial
 from os.path import expanduser
 
 from keras.applications.inception_resnet_v2 import InceptionResNetV2, preprocess_input
@@ -36,8 +37,8 @@ def _inceptionresnetv2_config():
         'use_multiprocessing': True,
         'verbose': True,
     }
-    updater_list = [(Dense, reshape_norm_meld), (Conv2D,
-                                                 reshape_norm_meld)]
+    updater_list = [(Dense, partial(reshape_norm_meld, dela=1)),
+                    (Conv2D, partial(reshape_norm_meld))]
 
 
 @inceptionresnetv2_experiment.main
