@@ -1,6 +1,8 @@
+"""InceptionResNetV2 experiment."""
+
 from os.path import expanduser
 
-from keras.applications.inception_resnet_v2 import InceptionResNetV2
+from keras.applications.inception_resnet_v2 import InceptionResNetV2, preprocess_input
 from keras.layers import Dense, Conv2D
 from keras.utils import multi_gpu_model
 from sacred import Experiment
@@ -26,8 +28,9 @@ def _inceptionresnetv2_config():
         'img_dir': expanduser("~/tmp/ilsvrc/db"),
         'val_file': expanduser("~/tmp/ilsvrc/caffe_ilsvrc12/val.txt"),
         'batch_size': 32,
-        'target_size': 299,
         # 'fast_mode': 1,
+        'target_size': 299,
+        'preproc': preprocess_input,
     }
     eval_args = {
         'use_multiprocessing': True,
