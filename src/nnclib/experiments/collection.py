@@ -13,7 +13,8 @@ from nnclib.compression import weights_updater, reshape_norm_meld
 from nnclib.generators import CropGenerator
 
 inceptionresnetv2_experiment = Experiment()
-inceptionresnetv2_experiment.observers.append(FileStorageObserver.create())
+observer = FileStorageObserver.create('experiment_results')
+inceptionresnetv2_experiment.observers.append(observer)
 
 
 @inceptionresnetv2_experiment.config
