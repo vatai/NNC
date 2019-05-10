@@ -7,11 +7,13 @@ from keras.applications.inception_resnet_v2 import InceptionResNetV2, preprocess
 from keras.layers import Dense, Conv2D
 from keras.utils import multi_gpu_model
 from sacred import Experiment
+from sacred.observers import FileStorageObserver
 
 from nnclib.compression import weights_updater, reshape_norm_meld
 from nnclib.generators import CropGenerator
 
 inceptionresnetv2_experiment = Experiment()
+inceptionresnetv2_experiment.observers.append(FileStorageObserver.create())
 
 
 @inceptionresnetv2_experiment.config
@@ -38,8 +40,8 @@ def _inceptionresnetv2_config():
     }
     eval_args = {
         'use_multiprocessing': False,
-	'workers': 10,
-        'max_queue_size': 20,
+	'workers': 14,
+        'max_queue_size': 14,
         'verbose': True,
     }
     gpus = 1
