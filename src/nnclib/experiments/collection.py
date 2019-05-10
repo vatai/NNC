@@ -27,7 +27,7 @@ def _inceptionresnetv2_config():
         'val_file': expanduser("~/tmp/ilsvrc/caffe_ilsvrc12/val.txt"),
         'batch_size': 32,
         'target_size': 299,
-        'fast_mode': 1
+        # 'fast_mode': 1,
     }
     eval_args = {
         'use_multiprocessing': True,
