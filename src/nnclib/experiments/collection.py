@@ -18,7 +18,10 @@ inceptionresnetv2_experiment = Experiment()
 def _inceptionresnetv2_config():
     # pylint: disable=unused-variable
     # flake8: noqa: F481
-    gpus = 1
+    d_delta = 0.005
+    c_delta = 0.005
+    updater_list = [(Dense, partial(reshape_norm_meld, delta=d_delta)),
+                    (Conv2D, partial(reshape_norm_meld, delta=c_delta))]
     compile_args = {
         'optimizer': 'rmsprop',
         'loss': 'categorical_crossentropy',
@@ -39,8 +42,7 @@ def _inceptionresnetv2_config():
         'max_queue_size': 20,
         'verbose': True,
     }
-    updater_list = [(Dense, partial(reshape_norm_meld, delta=1)),
-                    (Conv2D, partial(reshape_norm_meld))]
+    gpus = 1
 
 
 @inceptionresnetv2_experiment.main
