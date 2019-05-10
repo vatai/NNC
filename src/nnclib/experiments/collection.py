@@ -37,7 +37,7 @@ def _inceptionresnetv2_config():
         'use_multiprocessing': True,
         'verbose': True,
     }
-    updater_list = [(Dense, partial(reshape_norm_meld, dela=1)),
+    updater_list = [(Dense, partial(reshape_norm_meld, delta=1)),
                     (Conv2D, partial(reshape_norm_meld))]
 
 
