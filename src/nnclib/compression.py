@@ -1,5 +1,8 @@
-"""Compression related code."""
+"""Compression related code.
 
+"""
+
+from functools import partial
 import numpy as np
 
 from keras import optimizers
@@ -27,11 +30,16 @@ def reshape_weights(weights):
     return weights
 
 
-def _meld(weights):
+def _meld(weights, delta=0):
     """Return the melded weight matrix."""
     sorting = np.argsort(weights, axis=0)
     weights = np.take_along_axis(weights, sorting, axis=0)
     weights = np.mean(weights, axis=1)
+
+    if delta > 0:
+        mask = np.abs(weights) < delta
+        weights[mask] = 0
+
     unsort = np.argsort(sorting, axis=0)
     weights = np.take_along_axis(weights[:, np.newaxis], unsort, axis=0)
     return weights
@@ -46,9 +54,9 @@ def _norm(weights, melder):
     return weights
 
 
-def _norm_meld(weights):
+def _norm_meld(weights, delta=0):
     """Combine normalisation and melding."""
-    return _norm(weights, _meld)
+    return _norm(weights, partial(_meld, delta=delta))
 
 
 def _reshape_check(weights, melder):
@@ -61,14 +69,16 @@ def _reshape_check(weights, melder):
     return weights
 
 
-def reshape_meld(weights):
+def reshape_meld(weights, delta=0):
     """Reshape and meld weights matrix."""
-    return _reshape_check(weights, _meld)
+    melder = partial(_meld, delta=delta)
+    return _reshape_check(weights, melder)
 
 
-def reshape_norm_meld(weights):
+def reshape_norm_meld(weights, delta=0):
     """Reshape, normalise and meld weights matrix."""
-    return _reshape_check(weights, _norm_meld)
+    melder = partial(_norm_meld, delta=delta)
+    return _reshape_check(weights, melder)
 
 
 # """Keras specific."""
