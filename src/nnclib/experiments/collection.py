@@ -27,18 +27,21 @@ def _inceptionresnetv2_config():
         'val_file': expanduser("~/tmp/ilsvrc/caffe_ilsvrc12/val.txt"),
         'batch_size': 32,
         'target_size': 299,
-        # 'fast_mode': 1
+        'fast_mode': 1
     }
+    eval_args = { 'verbose': True }
     updater_list = [(Dense, reshape_norm_meld), (Conv2D,
                                                  reshape_norm_meld)]
 
 
 @inceptionresnetv2_experiment.main
-def _inceptionresnetv2_main(gpus, compile_args, gen_args, updater_list):
+def _inceptionresnetv2_main(gpus, compile_args, gen_args, eval_args,
+                            updater_list):
     model = InceptionResNetV2()
     if gpus > 1:
         model = multi_gpu_model(model)
     weights_updater(model, updater_list)
     model.compile(**compile_args)
-    results = model.evaluate_generator(CropGenerator(**gen_args))
+    results = model.evaluate_generator(CropGenerator(**gen_args),
+                                       **eval_args)
     return results
