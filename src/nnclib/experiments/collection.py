@@ -1,5 +1,6 @@
 """InceptionResNetV2 experiment."""
 
+from time import time
 from functools import partial
 from os.path import expanduser
 
@@ -51,11 +52,15 @@ def _inceptionresnetv2_config():
 @inceptionresnetv2_experiment.main
 def _inceptionresnetv2_main(gpus, compile_args, gen_args, eval_args,
                             updater_list):
+    print('>>>>> START <<<<<', time())
     model = InceptionResNetV2()
     if gpus > 1:
         model = multi_gpu_model(model)
+    print('>>>>> MODEL CREATED <<<<<', time())
     weights_updater(model, updater_list)
+    print('>>>>> MODEL UPDATED <<<<<', time())
     model.compile(**compile_args)
+    print('>>>>> MODEL COMPILED <<<<<', time())
     result = model.evaluate_generator(NextGenerator(**gen_args),
                                       **eval_args)
     results = dict(zip(['loss', 'top1', 'top5'], result))
