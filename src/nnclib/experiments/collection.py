@@ -40,9 +40,9 @@ def _inceptionresnetv2_config():
         'preproc': preprocess_input,
     }
     eval_args = {
-        'use_multiprocessing': False,
+        'use_multiprocessing': True,
 	'workers': 14,
-        'max_queue_size': 14,
+        'max_queue_size': 30,
         'verbose': True,
     }
     gpus = 1
