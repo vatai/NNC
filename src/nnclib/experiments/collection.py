@@ -10,7 +10,7 @@ from sacred import Experiment
 from sacred.observers import FileStorageObserver
 
 from nnclib.compression import weights_updater, reshape_norm_meld
-from nnclib.generators import CropGenerator
+from nnclib.generators import NextGenerator
 
 inceptionresnetv2_experiment = Experiment()
 observer = FileStorageObserver.create('experiment_results')
@@ -56,7 +56,7 @@ def _inceptionresnetv2_main(gpus, compile_args, gen_args, eval_args,
         model = multi_gpu_model(model)
     weights_updater(model, updater_list)
     model.compile(**compile_args)
-    result = model.evaluate_generator(CropGenerator(**gen_args),
+    result = model.evaluate_generator(NextGenerator(**gen_args),
                                       **eval_args)
     results = dict(zip(['loss', 'top1', 'top5'], result))
     return results
