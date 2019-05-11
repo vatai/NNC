@@ -199,6 +199,5 @@ class NextGenerator(keras.utils.Sequence):
         inputs_batch = np.array([self.preproc(image.img_to_array(
             image.load_img(fn, target_size=load_size).crop(box))) for
                                  fn in file_list])
-        outputs_batch = np.array([keras.utils.to_categorical(cat,
-                                                             1000) for cat in cat_list])
+        outputs_batch = np.array([cat for cat in cat_list])
         return inputs_batch, outputs_batch

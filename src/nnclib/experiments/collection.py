@@ -27,7 +27,7 @@ def _inceptionresnetv2_config():
                     (Conv2D, partial(reshape_norm_meld, delta=c_delta))]
     compile_args = {
         'optimizer': 'rmsprop',
-        'loss': 'categorical_crossentropy',
+        'loss': 'sparse_categorical_crossentropy',
         'metrics': ['categorical_accuracy',
                     'top_k_categorical_accuracy'],
     }
