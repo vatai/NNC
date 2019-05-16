@@ -31,26 +31,29 @@ def reshape_weights(weights):
 
 
 def prune(weights, delta=0):
-    """Prune weights with abs(.) < delta."""
+    """Prune weights with abs(.) < delta.
+
+    """
     if delta > 0:
         mask = np.abs(weights) < delta
         weights[mask] = 0
     return weights
 
 
-def _meld(weights, delta=0):
-    """Return the melded weight matrix."""
+def _meld(weights):
     sorting = np.argsort(weights, axis=0)
     weights = np.take_along_axis(weights, sorting, axis=0)
     weights = np.mean(weights, axis=1)
-    weights = prune(weights, delta)  # TODO(vatai): move this outside
     unsort = np.argsort(sorting, axis=0)
     weights = np.take_along_axis(weights[:, np.newaxis], unsort, axis=0)
     return weights
 
 
+def _meldprune(weights, delta=0):
+    return prune(_meld(weights), delta)
+
+
 def _norm(weights, melder):
-    """Return weight matrix after normalised melding."""
     norms = np.linalg.norm(weights, axis=0)
     weights /= norms
     weights = melder(weights)
@@ -58,13 +61,11 @@ def _norm(weights, melder):
     return weights
 
 
-def _norm_meld(weights, delta=0):
-    """Combine normalisation and melding."""
-    return _norm(weights, partial(_meld, delta=delta))
+def _norm_meldprune(weights, delta=0):
+    return _norm(weights, partial(_meldprune, delta=delta))
 
 
 def _reshape_check(weights, melder):
-    """Reshape and apply `melder` to the weights matrix."""
     shape = np.shape(weights)
     if len(shape) > 1:
         weights = reshape_weights(weights)
@@ -73,15 +74,27 @@ def _reshape_check(weights, melder):
     return weights
 
 
-def reshape_meld(weights, delta=0):
-    """Reshape and meld weights matrix."""
-    melder = partial(_meld, delta=delta)
+def reshape_meldprune(weights, delta=0):
+    """Check/reshape meld and optionally prune weights matrix.
+
+    """
+    melder = partial(_meldprune, delta=delta)
     return _reshape_check(weights, melder)
 
 
-def reshape_norm_meld(weights, delta=0):
-    """Reshape, normalise and meld weights matrix."""
-    melder = partial(_norm_meld, delta=delta)
+def reshape_norm_prune(weights, delta=0):
+    """Check/reshape normalise and prune weights
+
+    """
+    melder = partial(_norm, melder=partial(prune, delta=delta))
+    return _reshape_check(weights, melder=melder)
+
+
+def reshape_norm_meldprune(weights, delta=0):
+    """Check/reshape, normalise, meld and optionally prune weights matrix.
+
+    """
+    melder = partial(_norm_meldprune, delta=delta)
     return _reshape_check(weights, melder)
 
 

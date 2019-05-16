@@ -19,7 +19,7 @@ from keras.layers import Dense, Conv2D
 # from custom_layer_test import CompressedPrototype, get_new_weights
 from nnclib.experiments import run_experiment, model_factory, data_factory
 from nnclib.compression import evaluator, trainer, \
-    reshape_norm_meld, WeightsUpdater
+    reshape_norm_meldprune, WeightsUpdater
 
 # if os.path.exists('src'):
 #     sys.path.append('src')
@@ -38,7 +38,8 @@ from nnclib.compression import evaluator, trainer, \
 
 EPOCHS = 6
 
-UPDATER_LIST = [(Dense, reshape_norm_meld), (Conv2D, reshape_norm_meld)]
+UPDATER_LIST = [(Dense, reshape_norm_meldprune), (Conv2D,
+                                                  reshape_norm_meldprune)]
 
 RESULT = run_experiment(data_getter=data_factory.cifar10_float32,
                         model_maker=model_factory.vgg16_mod,
