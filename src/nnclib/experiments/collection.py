@@ -1,18 +1,15 @@
-"""TODO(vatai): time measurement
-    start = time.clock()
-    eval_results = evaluator(model, test_data)
-    end = time.clock()
+"""TODO(vatai): compression ratio
 
 TODO(vatai): extract delta: if has '-' use partial
 
+TODO(vatai): fix mnist https://www.kaggle.com/anandad/classify-fashion-mnist-with-vgg16
 """
 
 # from functools import partial
-import time
 import numpy as np
 
 import keras.datasets
-from keras.layers import Dense, Conv2D
+from keras.layers import Dense, Conv2D, Input
 from keras.models import Model
 from keras.utils import multi_gpu_model
 from sacred import Experiment
@@ -57,12 +54,13 @@ def decode_updater_list(coded_update_list):
 def _legion_config():
     # pylint: disable=unused-variable
     # flake8: noqa: F481
+    seed=42
     experiment_args = {
         'gpus': 1,
         'model_name': 'vgg19',
         'dataset_name': 'mnist',
         'coded_update_list': [("D", "p"), ("C2", "np")],
-        'on_nth_epoch': 10,
+        'on_nth_epoch': 1,
     }
     compile_args = {
         'optimizer': 'rmsprop',
@@ -86,11 +84,16 @@ def _legion_main(experiment_args, compile_args, fit_args):
     dataset = dataset_dict[dataset_name]
     train_data, test_data = dataset.load_data()
     output_units = np.max(train_data[1]) + 1
+    input_shape = train_data[0].shape[1:]
+    # if len(input_shape) < 3:
+    #     input_shape = tuple(list(input_shape) + [1])
+    # print('>>>> input_shape', input_shape)
 
     # Model
     model_name = experiment_args['model_name']
     model_class, preproc_dict = model_dict[model_name]
-    base_model = model_class(include_top=False, pooling='avg')
+    base_model = model_class(input_shape=input_shape,
+                             include_top=False, pooling='avg')
     outputs = base_model.output
     outputs = Dense(output_units, activation='softmax')(outputs)
     model = Model(inputs=base_model.input, outputs=outputs)
@@ -105,7 +108,6 @@ def _legion_main(experiment_args, compile_args, fit_args):
     }
     updater = nnclib.compression.WeightsUpdater(**weights_updater_args)
     fit_args['callbacks'] = [updater]
-
     model.fit(*train_data, **fit_args)
 
     #eval
