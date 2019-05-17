@@ -9,7 +9,7 @@ TODO(vatai): fix mnist https://www.kaggle.com/anandad/classify-fashion-mnist-wit
 import numpy as np
 
 import keras.datasets
-from keras.layers import Dense, Conv2D, Input
+from keras.layers import Dense, Conv2D
 from keras.models import Model
 from keras.utils import multi_gpu_model
 from sacred import Experiment
