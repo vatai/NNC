@@ -8,6 +8,7 @@ TODO(vatai): CHECK fix mnist https://www.kaggle.com/anandad/classify-fashion-mni
 from functools import partial
 import numpy as np
 
+from tensorflow import set_random_seed
 from keras.layers import Dense, Conv2D
 from keras.models import Model
 from keras.preprocessing.image import img_to_array, array_to_img
@@ -119,7 +120,8 @@ def mnist_data(train_data, test_data):
 
 
 @legion_experiment.main
-def _legion_main(experiment_args, compile_args, fit_args):
+def _legion_main(_seed, experiment_args, compile_args, fit_args):
+    set_random_seed(_seed)
 
     # dataset
     dataset_name = experiment_args['dataset_name']
