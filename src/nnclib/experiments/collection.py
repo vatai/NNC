@@ -47,7 +47,7 @@ def _legion_config():
         'model_name': 'vgg19',
         'dataset_name': 'mnist',
         'coded_updater_list': [("D", "m-0.005")],
-        'on_nth_epoch': 1,
+        'on_nth_epoch': 10,
     }
     compile_args = {
         'optimizer': 'rmsprop',
