@@ -71,9 +71,6 @@ def decode_updater_list(coded_update_list):
         'np': nnclib.compression.reshape_norm_prune,
         'nm': nnclib.compression.reshape_norm_meldprune
     }
-    updater_list = map(lambda p: tuple(decode_dict[k] for k in p),
-                       coded_update_list)
-    updater_list = list(updater_list)
 
     updater_list = []
     for typ, upd in coded_update_list:
