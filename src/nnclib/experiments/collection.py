@@ -46,7 +46,7 @@ def _legion_config():
         'gpus': 1,
         'model_name': 'vgg19',
         'dataset_name': 'mnist',
-        'coded_update_list': [("D", "p"), ("C2", "np-0.05")],
+        'coded_updater_list': [("D", "pm-0.005")],
         'on_nth_epoch': 1,
     }
     compile_args = {
@@ -64,7 +64,7 @@ def _legion_config():
     }
 
 
-def decode_updater_list(coded_update_list):
+def decode_updater_list(coded_updater_list):
     decode_dict = {
         'D': Dense,
         'C2': Conv2D,
@@ -75,7 +75,7 @@ def decode_updater_list(coded_update_list):
     }
 
     updater_list = []
-    for typ, upd in coded_update_list:
+    for typ, upd in coded_updater_list:
         layer_type = decode_dict[typ]
         if '-' in upd:
             upd = upd.split('-')
@@ -147,7 +147,7 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     # compile and fit
     model.compile(**compile_args)
     weights_updater_args = {
-        'updater_list': decode_updater_list(experiment_args['coded_update_list']),
+        'updater_list': decode_updater_list(experiment_args['coded_updater_list']),
         'on_nth_epoch': experiment_args['on_nth_epoch']
     }
     updater = nnclib.compression.WeightsUpdater(**weights_updater_args)
