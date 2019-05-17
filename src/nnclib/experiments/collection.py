@@ -36,21 +36,6 @@ dataset_dict = {
     'cifar100': keras.datasets.cifar100
 }
 
-def decode_updater_list(coded_update_list):
-    decode_dict = {
-        'D': Dense,
-        'C2': Conv2D,
-        'p': nnclib.compression.prune,
-        'm': nnclib.compression.reshape_meldprune,
-        'np': nnclib.compression.reshape_norm_prune,
-        'nm': nnclib.compression.reshape_norm_meldprune
-    }
-    updater_list = map(lambda p: tuple(decode_dict[k] for k in p),
-                       coded_update_list)
-    updater_list = list(updater_list)
-    return updater_list
-
-
 @legion_experiment.config
 def _legion_config():
     # pylint: disable=unused-variable
@@ -77,15 +62,31 @@ def _legion_config():
     }
 
 
-@legion_experiment.main
-def _legion_main(experiment_args, compile_args, fit_args):
+def decode_updater_list(coded_update_list):
+    decode_dict = {
+        'D': Dense,
+        'C2': Conv2D,
+        'p': nnclib.compression.prune,
+        'm': nnclib.compression.reshape_meldprune,
+        'np': nnclib.compression.reshape_norm_prune,
+        'nm': nnclib.compression.reshape_norm_meldprune
+    }
+    updater_list = map(lambda p: tuple(decode_dict[k] for k in p),
+                       coded_update_list)
+    updater_list = list(updater_list)
+    return updater_list
 
-    # dataset
-    dataset_name = experiment_args['dataset_name']
-    dataset = dataset_dict[dataset_name]
-    train_data, test_data = dataset.load_data()
-    output_units = np.max(train_data[1]) + 1
 
+def _resize(im):
+    im = array_to_img(im, scale=False).resize((48, 48))
+    return img_to_array(im)
+
+
+def mnist_data(train_data, test_data):
+    """Process mnist like {train,test}_data to work with
+    keras.applications pretrained models.
+
+    """
     shape = train_data[0].shape[1:]
     if len(shape) < 3:
         shape = [-1] + list(shape) + [3]
@@ -99,11 +100,25 @@ def _legion_main(experiment_args, compile_args, fit_args):
         train_x = np.reshape(train_x, shape)
         test_x = np.reshape(test_x, shape)
 
-        train_x = np.asarray([img_to_array(array_to_img(im, scale=False).resize((48, 48))) for im in train_x])
-        test_x = np.asarray([img_to_array(array_to_img(im, scale=False).resize((48, 48))) for im in test_x])
+        train_x = np.asarray([_resize(im) for im in train_x])
+        test_x = np.asarray([_resize(im) for im in test_x])
 
         train_data = train_x, train_t
         test_data = test_x, test_t
+
+    return train_data, test_data
+
+
+@legion_experiment.main
+def _legion_main(experiment_args, compile_args, fit_args):
+
+    # dataset
+    dataset_name = experiment_args['dataset_name']
+    dataset = dataset_dict[dataset_name]
+    train_data, test_data = dataset.load_data()
+    output_units = np.max(train_data[1]) + 1
+
+    train_data, test_data = mnist_data(train_data, test_data)
 
     print('>>>>', train_data[0].shape)
 
