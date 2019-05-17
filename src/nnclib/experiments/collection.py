@@ -1,7 +1,14 @@
-"""InceptionResNetV2 experiment."""
+"""TODO(vatai): time measurement
+    start = time.clock()
+    eval_results = evaluator(model, test_data)
+    end = time.clock()
+
+TODO(vatai): extract delta: if has '-' use partial
+
+"""
 
 # from functools import partial
-# from os.path import expanduser
+import time
 import numpy as np
 
 import keras.datasets
@@ -54,33 +61,25 @@ def _legion_config():
         'gpus': 1,
         'model_name': 'vgg19',
         'dataset_name': 'mnist',
-        'd_delta': 0.005,
-        'c_delta': 0.005,
+        'coded_update_list': [("D", "p"), ("C2", "np")],
+        'on_nth_epoch': 10,
     }
     compile_args = {
         'optimizer': 'rmsprop',
-        'loss': 'categorical_crossentropy',
+        'loss': 'sparse_categorical_crossentropy',
         'metrics': ['categorical_accuracy',
                     'top_k_categorical_accuracy'],
     }
     fit_args = {
-        'epochs': 300,
+        'epochs': 2,
         # 'validation_split': 0.2,
         'verbose': 2,
         'batch_size': 128,
     }
-    gen_args = {
-        'batch_size': 64,
-        # 'fast_mode': 1,
-        'target_size': 299,
-        # 'preproc': preprocess_input,
-    }
 
 
 @legion_experiment.main
-def _legion_main(experiment_args, compile_args, fit_args, gen_args):
-    coded_ulist = [("D", "p"), ("C2", "np")]
-    updater_list = decode_updater_list(coded_ulist)
+def _legion_main(experiment_args, compile_args, fit_args):
 
     # dataset
     dataset_name = experiment_args['dataset_name']
@@ -90,20 +89,26 @@ def _legion_main(experiment_args, compile_args, fit_args, gen_args):
 
     # Model
     model_name = experiment_args['model_name']
-    ModelClass, preproc_dict = model_dict[model_name]
-    base_model = ModelClass(include_top=False, pooling='avg')
+    model_class, preproc_dict = model_dict[model_name]
+    base_model = model_class(include_top=False, pooling='avg')
     outputs = base_model.output
     outputs = Dense(output_units, activation='softmax')(outputs)
     model = Model(inputs=base_model.input, outputs=outputs)
-    print('>>>>>>>>>>>>', preproc_dict)
     if experiment_args['gpus'] > 1:
         model = multi_gpu_model(model)
 
-
-    # weights_updater(model, updater_list)
+    # compile and fit
     model.compile(**compile_args)
-    # result = model.evaluate_generator(CropGenerator(**gen_args),
-    #                                   **eval_args)
-    # results = dict(zip(['loss', 'top1', 'top5'], result))
-    results = 0
+    weights_updater_args = {
+        'updater_list': decode_updater_list(experiment_args['coded_update_list']),
+        'on_nth_epoch': experiment_args['on_nth_epoch']
+    }
+    updater = nnclib.compression.WeightsUpdater(**weights_updater_args)
+    fit_args['callbacks'] = [updater]
+
+    model.fit(*train_data, **fit_args)
+
+    #eval
+    result = model.evaluate_generator(*test_data)
+    results = dict(zip(['loss', 'top1', 'top5'], result))
     return results
