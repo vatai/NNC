@@ -57,6 +57,7 @@ def _legion_config():
     }
     fit_args = {
         'epochs': 300,
+        'shuffle': True,
         # 'validation_split': 0.2,
         'verbose': 1,
         'batch_size': 128,
