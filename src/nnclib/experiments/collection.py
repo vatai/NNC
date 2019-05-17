@@ -93,7 +93,7 @@ def _resize(im):
     return img_to_array(im)
 
 
-def mnist_data(train_data, test_data):
+def fix_mnist_data(train_data, test_data):
     """Process mnist like {train,test}_data to work with
     keras.applications pretrained models.
 
@@ -129,10 +129,7 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     dataset = dataset_dict[dataset_name]
     train_data, test_data = dataset.load_data()
     output_units = np.max(train_data[1]) + 1
-
-    train_data, test_data = mnist_data(train_data, test_data)
-
-    print('>>>>', train_data[0].shape)
+    train_data, test_data = fix_mnist_data(train_data, test_data)
 
     # Model
     model_name = experiment_args['model_name']
