@@ -1,3 +1,3 @@
 import nnclib.experiments.collection as collection
 
-collection.inceptionresnetv2_experiment.run()
+collection.legion_experiment.run_commandline()
