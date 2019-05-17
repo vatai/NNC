@@ -41,7 +41,7 @@ dataset_dict = {
 def _legion_config():
     # pylint: disable=unused-variable
     # flake8: noqa: F481
-    seed=42
+    seed = 42
     experiment_args = {
         'gpus': 1,
         'model_name': 'vgg19',
