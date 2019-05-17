@@ -56,9 +56,9 @@ def _legion_config():
                     'sparse_top_k_categorical_accuracy'],
     }
     fit_args = {
-        'epochs': 1,
-        'validation_split': 0.8,
-        'verbose': 2,
+        'epochs': 300,
+        # 'validation_split': 0.2,
+        'verbose': 1,
         'batch_size': 128,
     }
 
