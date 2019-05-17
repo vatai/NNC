@@ -1,11 +1,11 @@
 """TODO(vatai): compression ratio
 
-TODO(vatai): extract delta: if has '-' use partial
+TODO(vatai): CHECK extract delta: if has '-' use partial
 
 TODO(vatai): CHECK fix mnist https://www.kaggle.com/anandad/classify-fashion-mnist-with-vgg16
 """
 
-# from functools import partial
+from functools import partial
 import numpy as np
 
 from keras.layers import Dense, Conv2D
@@ -45,7 +45,7 @@ def _legion_config():
         'gpus': 1,
         'model_name': 'vgg19',
         'dataset_name': 'mnist',
-        'coded_update_list': [("D", "p"), ("C2", "np")],
+        'coded_update_list': [("D", "p"), ("C2", "np-0.05")],
         'on_nth_epoch': 1,
     }
     compile_args = {
@@ -56,7 +56,7 @@ def _legion_config():
     }
     fit_args = {
         'epochs': 1,
-        # 'validation_split': 0.2,
+        'validation_split': 0.8,
         'verbose': 2,
         'batch_size': 128,
     }
@@ -74,6 +74,18 @@ def decode_updater_list(coded_update_list):
     updater_list = map(lambda p: tuple(decode_dict[k] for k in p),
                        coded_update_list)
     updater_list = list(updater_list)
+
+    updater_list = []
+    for typ, upd in coded_update_list:
+        layer_type = decode_dict[typ]
+        if '-' in upd:
+            upd = upd.split('-')
+            upd[0] = decode_dict[upd[0]]
+            upd[1] = float(upd[1])
+            updater = partial(upd[0], delta=upd[1])
+        else:
+            updater = decode_dict[upd]
+        updater_list.append((layer_type, updater))
     return updater_list
 
 
