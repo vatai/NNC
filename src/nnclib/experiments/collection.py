@@ -46,7 +46,7 @@ def _legion_config():
         'gpus': 1,
         'model_name': 'vgg19',
         'dataset_name': 'mnist',
-        'coded_updater_list': [("D", "pm-0.005")],
+        'coded_updater_list': [("D", "m-0.005")],
         'on_nth_epoch': 1,
     }
     compile_args = {
