@@ -39,10 +39,10 @@ cmds = []
 for mn in model_names:
     for ds in datasets:
         for ul in _make_all_updater_lists():
-            cmd = "./launcher.sh run_exp.py with \\\n"
-            cmd += "  'experiment_args.model_name\"{}\"' \\\n".format(mn)
-            cmd += "  'experiment_args.dataset_name\"{}\"' \\\n".format(ds)
-            cmd += "  'experiment_args.coded_updater_list\"{}\"'\n".format(ul)
+            cmd = "./launcher.sh p 1 run_exp.py with \\\n"
+            cmd += "  'experiment_args.model_name=\"{}\"' \\\n".format(mn)
+            cmd += "  'experiment_args.dataset_name=\"{}\"' \\\n".format(ds)
+            cmd += "  'experiment_args.coded_updater_list=\"{}\"'\n".format(ul)
             cmds.append(cmd)
 
 with open("big_run.sh", "w") as f:

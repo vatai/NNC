@@ -1,5 +1,6 @@
 #!/bin/sh
 #SBATCH -p PART
 #SBATCH --gres=gpu:NUMGPU
+#SBATCH -w p100,p[102-104]
 
 PYTHONPATH=. srun python CMD
