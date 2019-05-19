@@ -124,32 +124,28 @@ def fix_mnist_data(train_data, test_data):
 def _legion_main(_seed, experiment_args, compile_args, fit_args):
     set_random_seed(_seed)
 
+    model_name = experiment_args['model_name']
+    model_class, preproc_dict = model_dict[model_name]
+
     # dataset
     dataset_name = experiment_args['dataset_name']
     dataset = dataset_dict[dataset_name]
     train_data, test_data = dataset.load_data()
-    output_units = np.max(train_data[1]) + 1
     train_data, test_data = fix_mnist_data(train_data, test_data)
-
-    # Model
-    model_name = experiment_args['model_name']
-    model_class, preproc_dict = model_dict[model_name]
     preprocess_input = preproc_dict['preproc']
     train_data = preprocess_input(train_data[0]), train_data[1]
     test_data = preprocess_input(test_data[0]), train_data[1]
+
+    # Model
+    classes = np.max(train_data[1]) + 1
     model = model_class(input_shape=train_data[0].shape[1:],
-                             weights=None, include_top=True,
-                             classes=10)
-    # output = base_model.output
-    # output = Flatten()(output)
-    # output = Dense(2048, activation='relu')(output)
-    # output = Dense(output_units, activation='softmax')(output)
-    # model = Model(inputs_shape= base_model.input, output=output)
+                        weights=None, include_top=True,
+                        classes=classes)
     if experiment_args['gpus'] > 1:
         model = multi_gpu_model(model)
-
-    # compile and fit
     model.compile(**compile_args)
+
+    # fit
     weights_updater_args = {
         'updater_list': decode_updater_list(experiment_args['coded_updater_list']),
         'on_nth_epoch': experiment_args['on_nth_epoch']
