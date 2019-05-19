@@ -9,7 +9,7 @@ from functools import partial
 import numpy as np
 
 from tensorflow import set_random_seed
-from keras.layers import Dense, Conv2D
+from keras.layers import Flatten, Dense, Conv2D
 from keras.models import Model
 from keras.preprocessing.image import img_to_array, array_to_img
 from keras.utils import multi_gpu_model
@@ -139,8 +139,8 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     print(preprocess_input)
     train_data = preprocess_input(train_data[0]), train_data[1]
     test_data = preprocess_input(test_data[0]), train_data[1]
-    base_model = model_class(weights='imagenet', include_top=False, pooling='max')
-    output = base_model.output
+    base_model = model_class(weights=None, include_top=False, pooling=None)
+    output = Flatten(base_model.output)
     output = Dense(2048, activation='relu')(output)
     output = Dense(output_units, activation='softmax')(output)
     model = Model(inputs=base_model.input, output=output)
