@@ -140,9 +140,9 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     train_data = preprocess_input(train_data[0]), train_data[1]
     test_data = preprocess_input(test_data[0]), train_data[1]
     base_model = model_class(weights='imagenet', include_top=False, pooling='avg')
-    outputs = base_model.output
-    outputs = Dense(output_units, activation='softmax')(outputs)
-    model = Model(inputs=base_model.input, outputs=outputs)
+    output = base_model.output
+    output = Dense(output_units, activation='softmax')(output)
+    model = Model(inputs=base_model.input, output=output)
     if experiment_args['gpus'] > 1:
         model = multi_gpu_model(model)
 
