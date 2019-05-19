@@ -58,7 +58,7 @@ def _legion_config():
     fit_args = {
         'epochs': 300,
         'shuffle': True,
-        'validation_split': 0.15,
+        'validation_split': 0.2,
         'verbose': 1,
         'batch_size': 128,
     }
@@ -137,14 +137,14 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     preprocess_input = preproc_dict['preproc']
     train_data = preprocess_input(train_data[0]), train_data[1]
     test_data = preprocess_input(test_data[0]), train_data[1]
-    input_tensor = Input(shape=test_data[0].shape[1:])
-    base_model = model_class(input_tensor=input_tensor, weights=None,
-                             include_top=False, pooling=None)
-    output = base_model.output
-    output = Flatten()(output)
-    output = Dense(2048, activation='relu')(output)
-    output = Dense(output_units, activation='softmax')(output)
-    model = Model(inputs=base_model.input, output=output)
+    model = model_class(input_shape=train_data[0].shape[1:],
+                             weights=None, include_top=True,
+                             classes=10)
+    # output = base_model.output
+    # output = Flatten()(output)
+    # output = Dense(2048, activation='relu')(output)
+    # output = Dense(output_units, activation='softmax')(output)
+    # model = Model(inputs_shape= base_model.input, output=output)
     if experiment_args['gpus'] > 1:
         model = multi_gpu_model(model)
 
