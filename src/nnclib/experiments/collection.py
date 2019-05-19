@@ -1,20 +1,18 @@
 """TODO(vatai): compression ratio
 
-TODO(vatai): CHECK extract delta: if has '-' use partial
-
 TODO(vatai): CHECK fix mnist https://www.kaggle.com/anandad/classify-fashion-mnist-with-vgg16
 """
 
 from functools import partial
 import numpy as np
 
-from tensorflow import set_random_seed
-from keras.layers import Input, Flatten, Dense, Conv2D
-from keras.models import Model
+from keras.callbacks import History, ModelCheckpoint, EarlyStopping, TensorBoard
+from keras.layers import Dense, Conv2D
 from keras.preprocessing.image import img_to_array, array_to_img
 from keras.utils import multi_gpu_model
 from sacred import Experiment
 from sacred.observers import FileStorageObserver
+from tensorflow import set_random_seed
 import keras.datasets
 
 import nnclib.compression
@@ -47,7 +45,7 @@ def _legion_config():
         'model_name': 'vgg19',
         'dataset_name': 'mnist',
         'coded_updater_list': "D,m-0.005",
-        'on_nth_epoch': 10,
+        'on_nth_epoch': 2,
     }
     compile_args = {
         'optimizer': 'rmsprop',
@@ -56,7 +54,7 @@ def _legion_config():
                     'sparse_top_k_categorical_accuracy'],
     }
     fit_args = {
-        'epochs': 300,
+        'epochs': 150,
         'shuffle': True,
         'validation_split': 0.2,
         'verbose': 1,
@@ -134,6 +132,15 @@ def fix_mnist_data(train_data, test_data):
     return train_data, test_data
 
 
+@legion_experiment.capture
+def experiment_name(experiment_args):
+    tokens = []
+    tokens.append(experiment_args['model_name'])
+    tokens.append(experiment_args['dataset_name'])
+    tokens.append(experiment_args['coded_updater_list'])
+    tokens.append(experiment_args['on_nth_epoch'])
+    return tokens.join('-')
+
 @legion_experiment.main
 def _legion_main(_seed, experiment_args, compile_args, fit_args):
     set_random_seed(_seed)
@@ -165,7 +172,20 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
         'on_nth_epoch': experiment_args['on_nth_epoch']
     }
     updater = nnclib.compression.WeightsUpdater(**weights_updater_args)
-    fit_args['callbacks'] = [updater]
+
+    exp_name = experiment_name()
+    monitor = "val_sparse_categorical_accuracy"
+    history = History()
+    checkpoint = ModelCheckpoint(exp_name + ".model", monitor,
+                                 save_best_only=True,
+                                 save_weights_only=True,
+                                 period=20)
+    earlystop = EarlyStopping(monitor,
+                              min_delta=0.0001,
+                              patience=5,
+                              restore_best_weights=True)
+    tensorflow = TensorBoard(exp_name + ".tb")
+    fit_args['callbacks'] = [updater, history, checkpoint, earlystop, tensorflow]
     model.fit(*train_data, **fit_args)
 
     #eval
