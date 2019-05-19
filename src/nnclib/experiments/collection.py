@@ -65,6 +65,19 @@ def _legion_config():
 
 
 def decode_updater_list(coded_updater_list):
+    """Decode instructions for WeightsUpdater callback.
+
+    The WeightsUpdater class takes a list of (condition, action)
+    pairs, and if a layer in a model is an instance of `condition`
+    then the `action` is performed.  For ease of use, instead of
+    providing a list of pairs, the pairs are encoded in a single
+    string.  The pairs in the string are separated by a semicolon, and
+    the two elements of the pain are separated by a column.  Each
+    element is encoded according to the `decode_dict` below, with the
+    addition that if a pruning (or melding) operation is specified,
+    then the second element is separated with a `-` from the action.
+
+    """
     decode_dict = {
         'D': Dense,
         'C2': Conv2D,
