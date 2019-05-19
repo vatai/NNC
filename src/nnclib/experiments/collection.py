@@ -139,7 +139,7 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     print(preprocess_input)
     train_data = preprocess_input(train_data[0]), train_data[1]
     test_data = preprocess_input(test_data[0]), train_data[1]
-    base_model = model_class(weights='imagenet', include_top=False)
+    base_model = model_class(weights='imagenet', include_top=False, pooling='avg')
     outputs = base_model.output
     outputs = Dense(output_units, activation='softmax')(outputs)
     model = Model(inputs=base_model.input, outputs=outputs)
