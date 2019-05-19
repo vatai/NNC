@@ -2,4 +2,4 @@
 #SBATCH -p PART
 #SBATCH --gres=gpu:NUMGPU
 
-srun python CMD
+PYTHONPATH=. srun python CMD
