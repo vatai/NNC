@@ -58,7 +58,7 @@ def _legion_config():
     fit_args = {
         'epochs': 300,
         'shuffle': True,
-        # 'validation_split': 0.2,
+        'validation_split': 0.15,
         'verbose': 1,
         'batch_size': 128,
     }
@@ -134,6 +134,11 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     # Model
     model_name = experiment_args['model_name']
     model_class, preproc_dict = model_dict[model_name]
+    print(preproc_dict)
+    preprocess_input = preproc_dict['preproc']
+    print(preprocess_input)
+    train_data = preprocess_input(train_data[0]), train_data[1]
+    test_data = preprocess_input(test_data[0]), train_data[1]
     base_model = model_class(weights=None, include_top=False, pooling='avg')
     outputs = base_model.output
     outputs = Dense(output_units, activation='softmax')(outputs)
