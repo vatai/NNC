@@ -46,7 +46,7 @@ def _legion_config():
         'gpus': 1,
         'model_name': 'vgg19',
         'dataset_name': 'mnist',
-        'coded_updater_list': [("D", "m-0.005")],
+        'coded_updater_list': "D,m-0.005",
         'on_nth_epoch': 10,
     }
     compile_args = {
@@ -75,7 +75,8 @@ def decode_updater_list(coded_updater_list):
     }
 
     updater_list = []
-    for typ, upd in coded_updater_list:
+    for pair in coded_updater_list.split(';'):
+        typ, upd = pair.split(',')
         layer_type = decode_dict[typ]
         if '-' in upd:
             upd = upd.split('-')
