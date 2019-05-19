@@ -155,7 +155,7 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     train_data, test_data = fix_mnist_data(train_data, test_data)
     preprocess_input = preproc_dict['preproc']
     train_data = preprocess_input(train_data[0]), train_data[1]
-    test_data = preprocess_input(test_data[0]), train_data[1]
+    test_data = preprocess_input(test_data[0]), test_data[1]
 
     # Model
     classes = np.max(train_data[1]) + 1
