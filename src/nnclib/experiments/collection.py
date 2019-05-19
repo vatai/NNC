@@ -140,7 +140,7 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     train_data = preprocess_input(train_data[0]), train_data[1]
     test_data = preprocess_input(test_data[0]), train_data[1]
     base_model = model_class(weights=None, include_top=False, pooling=None)
-    output = Flatten(base_model.output)
+    output = Flatten()(base_model.output)
     output = Dense(2048, activation='relu')(output)
     output = Dense(output_units, activation='softmax')(output)
     model = Model(inputs=base_model.input, output=output)
