@@ -138,8 +138,8 @@ def experiment_name(experiment_args):
     tokens.append(experiment_args['model_name'])
     tokens.append(experiment_args['dataset_name'])
     tokens.append(experiment_args['coded_updater_list'])
-    tokens.append(experiment_args['on_nth_epoch'])
-    return tokens.join('-')
+    tokens.append(str(experiment_args['on_nth_epoch']))
+    return '-'.join(tokens)
 
 @legion_experiment.main
 def _legion_main(_seed, experiment_args, compile_args, fit_args):
