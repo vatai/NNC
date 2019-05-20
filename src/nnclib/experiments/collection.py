@@ -42,7 +42,7 @@ def _legion_config():
     seed = 42
     experiment_args = {
         'gpus': 1,
-        'model_name': 'vgg19',
+        'model_name': 'resnet50',
         'dataset_name': 'mnist',
         'coded_updater_list': "D,m-0.005",
         'on_nth_epoch': 2,
