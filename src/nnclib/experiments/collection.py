@@ -1,12 +1,12 @@
 """TODO(vatai): compression ratio
 
-TODO(vatai): CHECK fix mnist https://www.kaggle.com/anandad/classify-fashion-mnist-with-vgg16
 """
 
 from functools import partial
 import numpy as np
+import pickle
 
-from keras.callbacks import History, ModelCheckpoint, EarlyStopping, TensorBoard
+from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard
 from keras.layers import Dense, Conv2D
 from keras.preprocessing.image import img_to_array, array_to_img
 from keras.utils import multi_gpu_model
@@ -132,8 +132,7 @@ def fix_mnist_data(train_data, test_data):
     return train_data, test_data
 
 
-@legion_experiment.capture
-def experiment_name(experiment_args):
+def _experiment_name(experiment_args):
     tokens = []
     tokens.append(experiment_args['model_name'])
     tokens.append(experiment_args['dataset_name'])
@@ -145,6 +144,8 @@ def experiment_name(experiment_args):
 def _legion_main(_seed, experiment_args, compile_args, fit_args):
     set_random_seed(_seed)
 
+    exp_name = _experiment_name(experiment_args)
+    print(exp_name)
     model_name = experiment_args['model_name']
     model_class, preproc_dict = model_dict[model_name]
 
@@ -173,9 +174,7 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     }
     updater = nnclib.compression.WeightsUpdater(**weights_updater_args)
 
-    exp_name = experiment_name()
     monitor = "val_sparse_categorical_accuracy"
-    history = History()
     checkpoint = ModelCheckpoint(exp_name + ".model", monitor,
                                  save_best_only=True,
                                  save_weights_only=True,
@@ -185,10 +184,11 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
                               patience=5,
                               restore_best_weights=True)
     tensorflow = TensorBoard(exp_name + ".tb")
-    fit_args['callbacks'] = [updater, history, checkpoint, earlystop, tensorflow]
-    model.fit(*train_data, **fit_args)
+    fit_args['callbacks'] = [updater, checkpoint, earlystop, tensorflow]
+    history = model.fit(*train_data, **fit_args)
+    pickle.dump(history, open(exp_name + ".history", 'wb'))
 
     #eval
-    result = model.evaluate(*test_data)
+    result = model.evaluate(*test_data, verbose=fit_args['verbose'])
     results = dict(zip(['loss', 'top1', 'top5'], result))
     return results
