@@ -44,7 +44,7 @@ def _legion_config():
         'gpus': 1,
         'model_name': 'resnet50',
         'dataset_name': 'mnist',
-        'coded_updater_list': "D,m-0.005",
+        'coded_updater_list': "",  # "D,m-0.005",
         'on_nth_epoch': 2,
     }
     compile_args = {
@@ -54,7 +54,7 @@ def _legion_config():
                     'sparse_top_k_categorical_accuracy'],
     }
     fit_args = {
-        'epochs': 150,
+        'epochs': 50,
         'shuffle': True,
         'validation_split': 0.2,
         'verbose': 2,
@@ -181,13 +181,13 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     checkpoint = ModelCheckpoint(exp_name + ".model", monitor,
                                  save_best_only=True,
                                  save_weights_only=True,
-                                 period=20)
+                                 period=10)
     earlystop = EarlyStopping(monitor,
                               min_delta=1e-7,
-                              patience=5,
+                              patience=10,
                               restore_best_weights=True)
-    tensorflow = TensorBoard(exp_name + ".tb")
-    fit_args['callbacks'] = [updater, checkpoint, earlystop, tensorflow]
+    # tensorflow = TensorBoard(exp_name + ".tb")
+    fit_args['callbacks'] = [updater, checkpoint, earlystop]
     history = model.fit(*train_data, **fit_args)
     pickle.dump(history, open(exp_name + ".history", 'wb'))
 
