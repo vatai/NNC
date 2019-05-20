@@ -183,7 +183,7 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
                                  save_weights_only=True,
                                  period=20)
     earlystop = EarlyStopping(monitor,
-                              min_delta=0.0001,
+                              min_delta=1e-7,
                               patience=5,
                               restore_best_weights=True)
     tensorflow = TensorBoard(exp_name + ".tb")
