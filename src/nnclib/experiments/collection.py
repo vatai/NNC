@@ -187,8 +187,9 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     #                           min_delta=1e-7,
     #                           patience=10,
     #                           restore_best_weights=True)
-    # tensorflow = TensorBoard(exp_name + ".tb")
-    fit_args['callbacks'] = [updater, checkpoint]
+    tensorboard = TensorBoard(exp_name + ".tb", histogram_freq=1,
+                              batch_size=32, write_graph=True)
+    fit_args['callbacks'] = [updater, checkpoint, tensorboard]
     history = model.fit(*train_data, **fit_args)
 
     exp_name_he = exp_name + ".he"
