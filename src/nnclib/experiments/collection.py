@@ -4,7 +4,7 @@
 
 from functools import partial
 import numpy as np
-import pickle
+import json
 
 from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard
 from keras.layers import Dense, Conv2D
@@ -177,11 +177,13 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     }
     updater = nnclib.compression.WeightsUpdater(**weights_updater_args)
 
-    monitor = "val_sparse_categorical_accuracy"
-    checkpoint = ModelCheckpoint(exp_name + ".model", monitor,
+    # monitor = "val_sparse_categorical_accuracy"
+    exp_name_model = exp_name + ".model"
+    checkpoint = ModelCheckpoint(exp_name_model, # monitor,
                                  save_best_only=True,
                                  save_weights_only=True,
                                  period=10)
+    legion_experiment.add_artifact(exp_name_model)
     # earlystop = EarlyStopping(monitor,
     #                           min_delta=1e-7,
     #                           patience=10,
@@ -189,7 +191,13 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
     # tensorflow = TensorBoard(exp_name + ".tb")
     fit_args['callbacks'] = [updater, checkpoint]
     history = model.fit(*train_data, **fit_args)
-    pickle.dump(history, open(exp_name + ".history", 'wb'))
+
+    exp_name_he = exp_name + ".he"
+    exp_name_hh = exp_name + ".hh"
+    legion_experiment.add_artifact(exp_name_he)
+    legion_experiment.add_artifact(exp_name_hh)
+    json.dump(history.epoch, open(exp_name_he, 'w'))
+    json.dump(history.history, open(exp_name_hh, 'w'))
 
     #eval
     result = model.evaluate(*test_data, verbose=fit_args['verbose'])
