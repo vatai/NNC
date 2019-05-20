@@ -183,7 +183,6 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
                                  save_best_only=True,
                                  save_weights_only=True,
                                  period=10)
-    legion_experiment.add_artifact(exp_name_model)
     # earlystop = EarlyStopping(monitor,
     #                           min_delta=1e-7,
     #                           patience=10,
@@ -194,11 +193,12 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
 
     exp_name_he = exp_name + ".he"
     exp_name_hh = exp_name + ".hh"
-    legion_experiment.add_artifact(exp_name_he)
-    legion_experiment.add_artifact(exp_name_hh)
     json.dump(history.epoch, open(exp_name_he, 'w'))
     json.dump(history.history, open(exp_name_hh, 'w'))
 
+    legion_experiment.add_artifact(exp_name_model)
+    legion_experiment.add_artifact(exp_name_he)
+    legion_experiment.add_artifact(exp_name_hh)
     #eval
     result = model.evaluate(*test_data, verbose=fit_args['verbose'])
     results = dict(zip(['loss', 'top1', 'top5'], result))
