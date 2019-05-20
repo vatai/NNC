@@ -57,7 +57,7 @@ def _legion_config():
         'epochs': 150,
         'shuffle': True,
         'validation_split': 0.2,
-        'verbose': 1,
+        'verbose': 2,
         'batch_size': 128,
     }
 
