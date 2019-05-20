@@ -182,12 +182,12 @@ def _legion_main(_seed, experiment_args, compile_args, fit_args):
                                  save_best_only=True,
                                  save_weights_only=True,
                                  period=10)
-    earlystop = EarlyStopping(monitor,
-                              min_delta=1e-7,
-                              patience=10,
-                              restore_best_weights=True)
+    # earlystop = EarlyStopping(monitor,
+    #                           min_delta=1e-7,
+    #                           patience=10,
+    #                           restore_best_weights=True)
     # tensorflow = TensorBoard(exp_name + ".tb")
-    fit_args['callbacks'] = [updater, checkpoint, earlystop]
+    fit_args['callbacks'] = [updater, checkpoint]
     history = model.fit(*train_data, **fit_args)
     pickle.dump(history, open(exp_name + ".history", 'wb'))
 
