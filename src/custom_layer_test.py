@@ -21,8 +21,10 @@ Args:
 """
 
 import os
+import time
 import numpy as np
 import sacred
+import tensorflow
 import keras
 import keras.initializers
 import keras.backend as K
@@ -38,9 +40,7 @@ def config():
                     'loss': 'categorical_crossentropy',
                     'metrics': ['categorical_accuracy',
                                 'top_k_categorical_accuracy']}
-    gen_args = {'img_dir': os.path.expanduser("~/tmp/ilsvrc/db"),
-                'val_file': os.path.expanduser("~/tmp/ilsvrc/caffe_ilsvrc12/val.txt"),
-                'batch_size': 32,
+    gen_args = {'batch_size': 32,
                 'fast_mode': 1}
     eval_args = {'max_queue_size': 10,
                  'workers': 1,
@@ -92,7 +92,7 @@ class CompressedPrototype(keras.layers.Layer):
     def __init__(self, output_dim, **kwargs):
         self.output_dim = output_dim
         self.so_name = './src/unsortOp/unsort_ops.so'
-        self.unsort_module = tensorflow.load_op_library(so_name)
+        self.unsort_module = tensorflow.load_op_library(self.so_name)
         super(CompressedPrototype, self).__init__(**kwargs)
 
     def build(self, input_shape):
@@ -215,6 +215,7 @@ def main(compile_args, gen_args, eval_args):
 
     """
     model = keras.applications.vgg16.VGG16()
+    gen_args['preproc'] = keras.applications.vgg16.preprocess_input
     # model = keras.applications.resnet50.ResNet50()
     model.compile(**compile_args)
 

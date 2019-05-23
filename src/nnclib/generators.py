@@ -15,8 +15,8 @@ class CropGenerator(keras.utils.Sequence):
     def __init__(self, batch_size,
                  preproc,
                  load_size=256, target_size=224,
-                 val_file=os.path.expanduser("~/tmp/ilsvrc/db"),
-                 img_dir=os.path.expanduser("~/tmp/ilsvrc/caffe_ilsvrc12/val.txt"),
+                 img_dir=os.path.expanduser("~/tmp/ilsvrc/db"),
+                 val_file=os.path.expanduser("~/tmp/ilsvrc/caffe_ilsvrc12/val.txt"),
                  fast_mode=0):
         self.img_dir = img_dir
         self.file_list = []
