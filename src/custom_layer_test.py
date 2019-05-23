@@ -234,8 +234,32 @@ def main(compile_args, gen_args, eval_args):
     print("Evaluation results:")
     print(result)
 
+    start = time.clock()
     new_result = new_model.evaluate_generator(generator, **eval_args)
+    end = time.clock()
+
     print("NEW Evaluation results:")
     print(new_result)
+    print("Time: {}".format(end - start))
+
+    start = time.clock()
+    new_result = model.evaluate_generator(generator, **eval_args)
+    end = time.clock()
+
+    print("Time (original model): {}".format(end - start))
+
+    start = time.clock()
+    new_result = new_model.evaluate_generator(generator, **eval_args)
+    end = time.clock()
+
+    print("NEW Evaluation results:")
+    print(new_result)
+    print("Time: {}".format(end - start))
+
+    start = time.clock()
+    new_result = model.evaluate_generator(generator, **eval_args)
+    end = time.clock()
+
+    print("Time (original model): {}".format(end - start))
 
     print('Done.')
