@@ -1,4 +1,4 @@
-import keras.applications as Kapp
+import tensorflow.keras.applications as Kapp
 
 model_dict = {"xception":
               (Kapp.xception.Xception,
