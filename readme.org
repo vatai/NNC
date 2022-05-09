@@ -1,5 +1,7 @@
 #+OPTIONS: toc:nil ':t
 
+#+html: <a href='https://orgparse.readthedocs.io/en/latest/?badge=latest'> <img src='https://readthedocs.org/projects/orgparse/badge/?version=latest' alt='Documentation Status' /> </a>
+
 #+TITLE: Experiments for the paper "Compression with insight into layers of deep neural networks"
 
 * Theory: Neural Network Compression
